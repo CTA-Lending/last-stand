@@ -23,6 +23,21 @@ function pointSegDist(px, py, ax, ay, bx, by) {
   return dist(px, py, ax + dx * t, ay + dy * t);
 }
 
+// 回路徑折線上離 (x,y) 最近的投影點
+export function nearestPointOnPath(x, y, path) {
+  let best = { x: path[0].x, y: path[0].y }, bestD = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const ax = path[i].x, ay = path[i].y, bx = path[i + 1].x, by = path[i + 1].y;
+    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+    let t = len2 ? ((x - ax) * dx + (y - ay) * dy) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const px = ax + dx * t, py = ay + dy * t;
+    const d = dist(x, y, px, py);
+    if (d < bestD) { bestD = d; best = { x: px, y: py }; }
+  }
+  return best;
+}
+
 // 點到整條 waypoint 折線的最短距離
 export function pathDistance(x, y, path) {
   let min = Infinity;
