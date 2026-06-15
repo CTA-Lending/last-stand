@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>誰撐最久 · Last Stand</title>
+<style>
+  body { margin:0; background:#1c2230; color:#eee; font-family:system-ui,sans-serif;
+         display:flex; flex-direction:column; align-items:center; }
+  #topbar { display:flex; gap:18px; padding:10px; font-size:15px; }
+  #topbar b { color:#ffe08a; }
+  #stage { position:relative; }
+  canvas { display:block; background:#cfe3c4; border-radius:8px; cursor:pointer; }
+  #buildbar { display:flex; gap:8px; padding:10px; }
+  .build-btn { background:#2b3346; color:#eee; border:1px solid #3d4760; border-radius:8px;
+               padding:6px 10px; cursor:pointer; font-size:13px; text-align:center; }
+  .build-btn.active { border-color:#ffe08a; background:#3a3320; }
+  #towerpanel { position:absolute; top:8px; right:8px; background:rgba(20,24,34,.92);
+                padding:10px; border-radius:8px; font-size:13px; display:none; }
+  #towerpanel button { display:block; margin-top:6px; width:100%; cursor:pointer; }
+  #overlay { position:absolute; inset:0; background:rgba(0,0,0,.6); display:none;
+             align-items:center; justify-content:center; }
+  .panel { background:#222a3a; padding:30px 40px; border-radius:12px; text-align:center; }
+  .panel button { margin-top:14px; padding:10px 24px; font-size:16px; cursor:pointer;
+                  background:#7f77dd; color:#fff; border:none; border-radius:8px; }
+  .best { color:#ffe08a; }
+</style>
+</head>
+<body>
+  <div id="topbar">
+    <span>💰<b id="hud-gold">0</b></span>
+    <span>❤️<b id="hud-lives">0</b></span>
+    <span>🌊 第<b id="hud-wave">0</b>波</span>
+    <span>⭐<b id="hud-score">0</b></span>
+    <span>⏱️<b id="hud-time">0s</b></span>
+  </div>
+  <div id="stage">
+    <canvas id="game" width="800" height="480"></canvas>
+    <div id="towerpanel"></div>
+    <div id="overlay"></div>
+  </div>
+  <div id="buildbar"></div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
