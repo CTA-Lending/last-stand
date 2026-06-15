@@ -48,7 +48,7 @@ function update(dt) {
   for (const t of s.towers) updateTower(t, s.enemies, s.projectiles, dt);
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
-    const hit = updateProjectile(p, s.enemies, dt);
+    const hit = updateProjectile(p, s.enemies, dt, s.now);
     if (hit) burst(hit.x, hit.y, p.color, 7);
     if (!p.alive) s.projectiles.splice(i, 1);
   }
