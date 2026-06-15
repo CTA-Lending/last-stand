@@ -308,7 +308,7 @@ function initMapPicker() {
 
 function initModePicker() {
   const bar = document.getElementById('modebar');
-  bar.innerHTML = '模式';
+  bar.innerHTML = '';
   const mk = (label, on) => { const b = document.createElement('button'); b.textContent = label; b.onclick = on; bar.appendChild(b); return b; };
   const endlessB = mk('無盡', () => { currentMode = 'endless'; currentLevel = null; initModePicker(); });
   const campB = mk('戰役', () => {
