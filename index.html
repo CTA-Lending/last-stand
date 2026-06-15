@@ -32,6 +32,9 @@
   .panel button { margin-top:14px; padding:10px 24px; font-size:16px; cursor:pointer;
                   background:#7f77dd; color:#fff; border:none; border-radius:8px; }
   .best { color:#ffe08a; }
+  #mapbar button { margin-left:6px; font-size:12px; padding:2px 8px; cursor:pointer;
+                   background:#2b3346; color:#eee; border:1px solid #3d4760; border-radius:6px; }
+  #mapbar button.active { border-color:#ffe08a; }
 </style>
 </head>
 <body>
@@ -42,6 +45,7 @@
     <span>⭐<b id="hud-score">0</b></span>
     <span>⏱️<b id="hud-time">0s</b></span>
     <span id="hud-next" style="color:#ffe08a;font-weight:bold;"></span>
+    <span id="mapbar"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>

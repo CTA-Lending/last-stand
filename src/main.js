@@ -1,4 +1,5 @@
 import { MAP1 } from './data/map1.js';
+import { MAP2 } from './data/map2.js';
 import { BALANCE } from './data/balance.js';
 import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
@@ -20,6 +21,9 @@ import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
 import { computeDamage } from './systems/combat.js';
+
+const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
+let currentMap = MAP1;
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -47,7 +51,9 @@ function update(dt) {
   if (s.spawnQueue.length > 0) {
     s.spawnTimer -= dt;
     if (s.spawnTimer <= 0) {
-      s.enemies.push(spawnEnemy(s.spawnQueue.shift(), s.map));
+      const pi = s.spawnCount % s.map.paths.length;
+      s.enemies.push(spawnEnemy(s.spawnQueue.shift(), s.map, pi));
+      s.spawnCount++;
       s.spawnTimer = BALANCE.endless.spawnGap;
     }
   }
@@ -159,8 +165,8 @@ canvas.addEventListener('click', () => {
         t.cellKey = key;
         s.towers.push(t);
         s.occupiedCells.add(key);
-        if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.path);
-        if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, s.map.path, 26);
+        if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.paths);
+        if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, s.map.paths, 26);
         s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
         refreshBuildButtons(s);
       }
@@ -170,19 +176,33 @@ canvas.addEventListener('click', () => {
   s.selectedTower = null; showTowerPanel(s);
 });
 
+function initMapPicker() {
+  const bar = document.getElementById('mapbar');
+  bar.innerHTML = '🗺️';
+  MAPS.forEach(m => {
+    const b = document.createElement('button');
+    b.textContent = m.name;
+    b.classList.toggle('active', m.map === currentMap);
+    b.onclick = () => { currentMap = m.map; restart(); initMapPicker(); };
+    bar.appendChild(b);
+  });
+}
+
 function restart() {
-  state = createGameState(MAP1);
+  state = createGameState(currentMap);
   initBuildMenu(state);
   initSpellBar(state, onCast);
   startWave(state);
+  initMapPicker();
 }
 
 function boot() {
-  state = createGameState(MAP1);
+  state = createGameState(currentMap);
   initBuildMenu(state);
   initSpellBar(state, onCast);
   startWave(state);
   loop = createLoop({ update, render: draw });
+  initMapPicker();
   loop.start();
 }
 boot();

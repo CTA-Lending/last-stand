@@ -10,7 +10,7 @@ export function createGameState(map) {
     enemies: [], towers: [], projectiles: [],
     buildableCells: computeBuildableCells(map), // 除走道外的可蓋格 key
     occupiedCells: new Set(),                    // 已建塔的格 key
-    wave: 0, waveTimer: 0, spawnQueue: [], spawnTimer: 0,
+    wave: 0, waveTimer: 0, spawnQueue: [], spawnTimer: 0, spawnCount: 0,
     selectedTowerType: null, selectedTower: null,
     now: 0, over: false, started: false,
     spells: createSpellState(),
