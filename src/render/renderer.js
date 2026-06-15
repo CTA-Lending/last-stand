@@ -70,16 +70,49 @@ function drawTower(ctx, t) {
     ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(t.x, t.y, 7, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#2a2a2a'; ctx.fillRect(t.x - 5, t.y - 1, 10, 3);
   } else {
-    // 射擊塔：石座 + 核心 + 瞄準砲管
+    // 射擊塔：石座 + 陣營專屬造型
     ctx.fillStyle = '#6b6456'; ctx.beginPath(); ctx.arc(t.x, t.y, 13, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#3a3528'; ctx.lineWidth = 2; ctx.stroke();
+    const fac = (TOWERS[t.type] && TOWERS[t.type].faction) || '';
     const a = t.aimAngle || 0;
-    ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(a);
-    ctx.fillStyle = '#33302a'; ctx.fillRect(2, -3.5, 15, 7);
-    ctx.fillStyle = t.color; ctx.fillRect(13, -2.5, 5, 5);
+    const c = t.color;
+    ctx.save(); ctx.translate(t.x, t.y);
+    if (fac === 'mage' || fac === 'god') {
+      // 法球：發光 orb（神族加光芒）
+      if (fac === 'god') {
+        ctx.strokeStyle = rgba(c, 0.7); ctx.lineWidth = 1.5;
+        for (let k = 0; k < 8; k++) { const g = k * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(g) * 11, Math.sin(g) * 11); ctx.lineTo(Math.cos(g) * 15, Math.sin(g) * 15); ctx.stroke(); }
+      }
+      ctx.fillStyle = rgba(c, 0.45); ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 6.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = lighten(c, 80); ctx.beginPath(); ctx.arc(-2, -2, 2.6, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.rotate(a);
+      if (fac === 'dwarf') {
+        ctx.fillStyle = '#33302a'; ctx.fillRect(2, -4.5, 16, 9);
+        ctx.fillStyle = '#16140f'; ctx.beginPath(); ctx.arc(18, 0, 4, -Math.PI / 2, Math.PI / 2); ctx.fill();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+      } else if (fac === 'elf') {
+        ctx.strokeStyle = c; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(1, 0, 11, -2.0, 2.0); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(1 + Math.cos(-2.0) * 11, Math.sin(-2.0) * 11); ctx.lineTo(1 + Math.cos(2.0) * 11, Math.sin(2.0) * 11); ctx.stroke();
+        ctx.strokeStyle = '#e8e0c0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(15, 0); ctx.stroke();
+      } else if (fac === 'human') {
+        ctx.fillStyle = '#5a4a32'; ctx.fillRect(-2, -2, 18, 4);
+        ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(6, 9); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(16, 0); ctx.lineTo(6, 9); ctx.stroke();
+      } else if (fac === 'dragon') {
+        ctx.fillStyle = rgba('#ffcc55', 0.55); ctx.beginPath(); ctx.arc(17, 0, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(2, -6); ctx.lineTo(17, 0); ctx.lineTo(2, 6); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.fillStyle = '#33302a'; ctx.fillRect(2, -3.5, 15, 7);
+        ctx.fillStyle = c; ctx.fillRect(13, -2.5, 5, 5);
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
     ctx.restore();
-    ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(t.x, t.y, 7, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = lighten(t.color, 60); ctx.beginPath(); ctx.arc(t.x - 2, t.y - 2, 2.5, 0, Math.PI * 2); ctx.fill();
   }
   // 等級點 + 專精金點
   for (let i = 0; i <= (t.level || 0); i++) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(t.x - 11 + i * 6, t.y + 13, 4, 3); }
