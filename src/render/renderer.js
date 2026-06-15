@@ -37,8 +37,29 @@ function drawBuildGrid(ctx, state, mouse) {
 function drawTower(ctx, t) {
   ctx.fillStyle = '#5b5546';
   ctx.fillRect(t.x - 13, t.y - 13, 26, 26);
-  ctx.fillStyle = t.color;
-  ctx.beginPath(); ctx.arc(t.x, t.y, 11, 0, Math.PI * 2); ctx.fill();
+  if (t.kind === 'barracks') {
+    // 旗幟方塊 + 小旗
+    ctx.fillStyle = t.color;
+    ctx.fillRect(t.x - 9, t.y - 8, 18, 14);
+    ctx.fillStyle = '#c9522a';
+    ctx.beginPath();
+    ctx.moveTo(t.x - 5, t.y - 9);
+    ctx.lineTo(t.x + 7, t.y - 4);
+    ctx.lineTo(t.x - 5, t.y + 1);
+    ctx.closePath(); ctx.fill();
+    // 集結點虛線標記
+    if (t.rally) {
+      ctx.strokeStyle = 'rgba(201,194,168,0.5)'; ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.rally.x, t.rally.y); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(201,194,168,0.7)';
+      ctx.beginPath(); ctx.arc(t.rally.x, t.rally.y, 4, 0, Math.PI * 2); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = t.color;
+    ctx.beginPath(); ctx.arc(t.x, t.y, 11, 0, Math.PI * 2); ctx.fill();
+  }
   // 等級點
   for (let i = 0; i <= t.level; i++) {
     ctx.fillStyle = '#fff';
@@ -47,6 +68,21 @@ function drawTower(ctx, t) {
   if (t.branch != null) {
     ctx.fillStyle = '#ffd35a';
     ctx.fillRect(t.x + 9, t.y - 13, 5, 5);
+  }
+}
+
+function drawSoldiers(ctx, towers) {
+  for (const t of towers) {
+    if (t.kind !== 'barracks' || !t.soldiers) continue;
+    for (const s of t.soldiers) {
+      if (!s.alive) continue;
+      ctx.fillStyle = '#d8d2bc';
+      ctx.beginPath(); ctx.arc(s.x, s.y, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#8a8568'; ctx.lineWidth = 1.5; ctx.stroke();
+      const w = 14, ratio = Math.max(0, s.hp / s.maxHp);
+      ctx.fillStyle = '#000'; ctx.fillRect(s.x - w / 2, s.y - 12, w, 3);
+      ctx.fillStyle = '#5fd35f'; ctx.fillRect(s.x - w / 2, s.y - 12, w * ratio, 3);
+    }
   }
 }
 
@@ -84,7 +120,9 @@ function drawProjectile(ctx, p) {
 
 function drawRangePreview(ctx, state, mouse) {
   if (!state.selectedTowerType) return;
-  const r = TOWERS[state.selectedTowerType].levels[0].range;
+  const def = TOWERS[state.selectedTowerType];
+  const r = def.levels[0].range;
+  if (!r) return; // barracks has no range ring
   const { col, row } = cellOf(mouse.x, mouse.y, state.map.tile);
   const c = cellCenter(col, row, state.map.tile);
   ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
@@ -95,14 +133,23 @@ export function render(ctx, state, mouse) {
   drawTerrain(ctx, state.map);
   drawBuildGrid(ctx, state, mouse);
   for (const t of state.towers) drawTower(ctx, t);
+  drawSoldiers(ctx, state.towers);
   for (const e of state.enemies) if (e.alive) drawEnemy(ctx, e);
   for (const p of state.projectiles) if (p.alive) drawProjectile(ctx, p);
   drawParticles(ctx);
   drawRangePreview(ctx, state, mouse);
   if (state.selectedTower) {
     const t = state.selectedTower;
-    ctx.strokeStyle = 'rgba(255,255,0,0.7)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
+    if (t.kind === 'barracks') {
+      // 兵營選取：顯示 engageRange 圓（集結點為圓心）
+      if (t.rally) {
+        ctx.strokeStyle = 'rgba(201,194,168,0.7)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(t.rally.x, t.rally.y, t.engageRange, 0, Math.PI * 2); ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,0,0.7)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
+    }
   }
   // 火雨點地預覽圓
   if (state.castMode === 'firerain') {

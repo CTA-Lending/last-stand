@@ -13,6 +13,7 @@ export function spawnEnemy(spec, map) {
     radius: def.radius, color: def.color,
     alive: true, reachedEnd: false,
     slowUntil: 0, slowFactor: 1, dots: [], hitFlash: 0, // slowUntil/slowFactor/dots reserved for Phase 2 — no tower applies them yet
+    blockedBy: null, atkCd: 0, dmg: def.dmg, atk: def.atk,
   };
 }
 
@@ -28,6 +29,8 @@ export function updateEnemy(e, map, dt, now) {
   if (now >= e.slowUntil) e.slowFactor = 1;
   const factor = now < e.slowUntil ? e.slowFactor : 1;
   if (e.hitFlash > 0) e.hitFlash -= dt;
+  // 被士兵攔住 → 原地不前進（纏鬥由 blocking 處理）
+  if (e.blockedBy != null) { return; }
   const moved = advancePath(map.path, e.seg, e.x, e.y, e.speed * factor * dt);
   e.x = moved.x; e.y = moved.y; e.seg = moved.seg;
   if (moved.done) { e.reachedEnd = true; e.alive = false; }

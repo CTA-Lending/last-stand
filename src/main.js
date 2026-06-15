@@ -7,12 +7,13 @@ import { updateParticles, burst } from './render/particles.js';
 import { buildWave } from './systems/endlessDirector.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
 import { buildTower, updateTower } from './entities/tower.js';
+import { updateBlocking } from './systems/blocking.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver } from './ui/hud.js';
 import { initBuildMenu, showTowerPanel, refreshBuildButtons } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
-import { cellOf, cellKey, cellCenter } from './systems/grid.js';
+import { cellOf, cellKey, cellCenter, nearestPointOnPath } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
@@ -50,7 +51,10 @@ function update(dt) {
   }
   if (s.waveTimer <= 0 && s.spawnQueue.length === 0) startWave(s);
 
-  for (const t of s.towers) updateTower(t, s.enemies, s.projectiles, dt);
+  for (const t of s.towers) {
+    if (t.kind === 'barracks') updateBlocking(t, s.enemies, dt, s.now);
+    else updateTower(t, s.enemies, s.projectiles, dt);
+  }
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
     const hit = updateProjectile(p, s.enemies, dt, s.now);
@@ -139,6 +143,7 @@ canvas.addEventListener('click', () => {
         t.cellKey = key;
         s.towers.push(t);
         s.occupiedCells.add(key);
+        if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.path);
         s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
         refreshBuildButtons(s);
       }

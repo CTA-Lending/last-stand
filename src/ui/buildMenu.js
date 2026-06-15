@@ -1,5 +1,6 @@
 import { TOWERS } from '../data/towers.js';
 import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue } from '../entities/tower.js';
+import { releaseBarracks } from '../systems/blocking.js';
 import { BALANCE } from '../data/balance.js';
 
 export function initBuildMenu(state) {
@@ -46,8 +47,11 @@ export function showTowerPanel(state) {
   }
   panel.style.display = 'block';
   const lvLabel = t.branch != null ? def.branches[t.branch].name : 'Lv.' + (t.level + 1);
+  const statLine = t.kind === 'barracks'
+    ? `<div>士兵 ${t.maxSoldiers}名 · 血${t.soldierHp} 攻${t.soldierDmg}</div>`
+    : `<div>傷害 ${t.damage} · 射程 ${t.range}</div>`;
   panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
-    <div>傷害 ${t.damage} · 射程 ${t.range}</div>
+    ${statLine}
     ${actions}
     <button id="sell">賣出 (+${sell}g)</button>`;
   const upg = document.getElementById('upg');
@@ -61,6 +65,7 @@ export function showTowerPanel(state) {
   }
   document.getElementById('sell').onclick = () => {
     state.economy.earn(sell);
+    if (t.kind === 'barracks') releaseBarracks(t, state.enemies); // 釋放被擋的敵人，避免永久卡住
     state.towers = state.towers.filter(x => x !== t);
     state.occupiedCells.delete(t.cellKey);
     state.selectedTower = null; panel.style.display = 'none';

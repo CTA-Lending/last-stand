@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cellOf, cellKey, cellCenter, pathDistance, isBuildable, computeBuildableCells } from '../src/systems/grid.js';
+import { cellOf, cellKey, cellCenter, pathDistance, isBuildable, computeBuildableCells, nearestPointOnPath } from '../src/systems/grid.js';
 
 const map = { width: 200, height: 200, tile: 40, path: [{ x: 0, y: 100 }, { x: 200, y: 100 }] };
 
@@ -26,4 +26,9 @@ test('computeBuildableCells 排除走道、保留遠處', () => {
   const set = computeBuildableCells(map);
   assert.ok(!set.has('2,2'));
   assert.ok(set.has('2,0'));
+});
+test('nearestPointOnPath 回路徑上最近點', () => {
+  const p = nearestPointOnPath(100, 40, [{ x: 0, y: 0 }, { x: 200, y: 0 }]);
+  assert.equal(Math.round(p.x), 100);
+  assert.equal(Math.round(p.y), 0);
 });
