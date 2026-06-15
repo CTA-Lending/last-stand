@@ -70,6 +70,16 @@
   .lb-sub { color:#9fb0c0; font-size:12px; margin:14px 0 6px; }
   .lb-close { display:block; margin:16px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
   .lb-note { color:#6f7d8c; font-size:11px; text-align:center; margin-top:10px; }
+  #lobby { position:absolute; inset:0; background:#1a2030; display:flex;
+           align-items:center; justify-content:center; z-index:5; }
+  .lobby-panel { background:#222a3a; padding:30px 40px; border-radius:16px; text-align:center; min-width:420px; }
+  .lobby-panel h1 { margin:0 0 18px; }
+  .lobby-section { display:flex; align-items:center; gap:10px; justify-content:center; margin:10px 0; }
+  .lobby-label { color:#9fb0c0; width:48px; text-align:right; }
+  #enterRun { margin:18px 0 6px; padding:12px 36px; font-size:18px; cursor:pointer;
+              background:#7f77dd; color:#fff; border:none; border-radius:10px; }
+  #enterRun:hover { background:#9089e6; }
+  .lobby-menu { display:flex; gap:8px; justify-content:center; margin-top:14px; }
 </style>
 </head>
 <body>
@@ -80,11 +90,6 @@
     <span>⭐<b id="hud-score">0</b></span>
     <span>⏱️<b id="hud-time">0s</b></span>
     <span id="hud-next" style="color:#ffe08a;font-weight:bold;"></span>
-    <span id="mapbar"></span>
-    <span id="modebar"></span>
-    <span id="gachabtn"></span>
-    <span id="dexbtn"></span>
-    <span id="lbbtn"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
@@ -93,6 +98,17 @@
     <div id="gachaoverlay"></div>
     <div id="dexoverlay"></div>
     <div id="lboverlay"></div>
+    <div id="lobby">
+      <div class="lobby-panel">
+        <h1>🏰 守關者 · 大廳</h1>
+        <div class="lobby-section"><span class="lobby-label">模式</span><span id="modebar"></span></div>
+        <div class="lobby-section"><span class="lobby-label">地圖</span><span id="mapbar"></span></div>
+        <button id="enterRun">⚔️ 進入副本</button>
+        <div class="lobby-menu">
+          <span id="gachabtn"></span><span id="dexbtn"></span><span id="lbbtn"></span>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="buildbar"></div>
   <div id="spellbar"></div>
