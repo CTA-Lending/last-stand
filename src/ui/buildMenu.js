@@ -65,6 +65,10 @@ export function showTowerPanel(state) {
   const lvLabel = t.branch != null ? def.branches[t.branch].name : 'Lv.' + (t.level + 1);
   const statLine = t.kind === 'barracks'
     ? `<div>士兵 ${t.maxSoldiers}名 · 血${t.soldierHp} 攻${t.soldierDmg}</div>`
+    : t.kind === 'banner'
+    ? `<div>光環 傷害×${t.buffDamage} 射速×${t.buffFireRate} · 範圍${t.range}</div>`
+    : t.kind === 'mine'
+    ? `<div>地雷 ${t.maxMines}顆 · 傷害${t.damage} 範圍${t.splash}</div>`
     : `<div>傷害 ${t.damage} · 射程 ${t.range}</div>`;
   panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
     ${statLine}
