@@ -21,6 +21,8 @@ import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
 import { computeDamage } from './systems/combat.js';
+import { isNewDay } from './systems/gacha.js';
+import { openGacha } from './ui/gacha.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
@@ -30,6 +32,20 @@ const ctx = canvas.getContext('2d');
 const save = createSaveService();
 const mouse = { x: 0, y: 0 };
 let state, loop;
+
+const profile = save.loadProfile();
+const gachaUnlocked = new Set(profile.unlocked);
+const today = new Date().toISOString().slice(0, 10);
+if (isNewDay(profile.lastLogin, today)) { profile.tickets += 1; profile.lastLogin = today; save.saveProfile(profile); }
+
+function initGachaButton() {
+  const bar = document.getElementById('gachabtn');
+  bar.innerHTML = '';
+  const b = document.createElement('button');
+  b.textContent = '🎰 轉蛋 (' + profile.tickets + '券)';
+  b.onclick = () => openGacha({ profile, gachaUnlocked, save, onUnlock: () => { refreshBuildLocks(state); initGachaButton(); } });
+  bar.appendChild(b);
+}
 
 function startWave(s) {
   s.wave += 1;
@@ -190,6 +206,7 @@ function initMapPicker() {
 
 function restart() {
   state = createGameState(currentMap);
+  state.gachaUnlocked = gachaUnlocked;
   initBuildMenu(state);
   initSpellBar(state, onCast);
   startWave(state);
@@ -198,11 +215,13 @@ function restart() {
 
 function boot() {
   state = createGameState(currentMap);
+  state.gachaUnlocked = gachaUnlocked;
   initBuildMenu(state);
   initSpellBar(state, onCast);
   startWave(state);
   loop = createLoop({ update, render: draw });
   initMapPicker();
+  initGachaButton();
   loop.start();
 }
 boot();
