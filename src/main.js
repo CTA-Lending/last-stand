@@ -3,7 +3,7 @@ import { BALANCE } from './data/balance.js';
 import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
-import { updateParticles, burst } from './render/particles.js';
+import { updateParticles, burst, spark } from './render/particles.js';
 import { buildWave } from './systems/endlessDirector.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
 import { buildTower, updateTower, isTowerUnlocked } from './entities/tower.js';
@@ -58,7 +58,13 @@ function update(dt) {
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
     const hit = updateProjectile(p, s.enemies, dt, s.now);
-    if (hit) burst(hit.x, hit.y, p.color, 7);
+    if (hit) {
+      if (hit.nodes && hit.nodes.length > 1) {
+        for (let n = 1; n < hit.nodes.length; n++)
+          spark(hit.nodes[n - 1].x, hit.nodes[n - 1].y, hit.nodes[n].x, hit.nodes[n].y, p.color);
+      }
+      burst(hit.x, hit.y, p.color, 7);
+    }
     if (!p.alive) s.projectiles.splice(i, 1);
   }
   for (const e of s.enemies) {
