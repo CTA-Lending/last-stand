@@ -3,6 +3,13 @@ import { spawnSoldier } from '../entities/soldier.js';
 
 const RESPAWN = 4; // 士兵重生秒
 
+// 兵營被賣掉/移除時：釋放它的士兵正在攔截的敵人，避免敵人永久卡住(blockedBy 指向不存在的士兵)
+export function releaseBarracks(b, enemies) {
+  if (!b.soldiers) return;
+  const ids = new Set(b.soldiers.map(s => s.id));
+  for (const e of enemies) if (ids.has(e.blockedBy)) e.blockedBy = null;
+}
+
 export function updateBlocking(b, enemies, dt, now) {
   // 補足/重生士兵
   while (b.soldiers.length < b.maxSoldiers) b.soldiers.push(spawnSoldier(b, b.soldiers.length));

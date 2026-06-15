@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { updateBlocking } from '../src/systems/blocking.js';
+import { updateBlocking, releaseBarracks } from '../src/systems/blocking.js';
 
 function barracks() {
   return { kind: 'barracks', x: 100, y: 100, rally: { x: 100, y: 100 },
@@ -35,4 +35,12 @@ test('纏鬥時士兵與敵互扣血', () => {
   const s = b.soldiers[0];
   assert.ok(e.hp < 100);          // 敵被砍
   assert.ok(s.hp < s.maxHp || !s.alive); // 士兵被打
+});
+test('賣兵營會釋放被擋的敵人(不永久卡住)', () => {
+  const b = barracks();
+  const e = enemy({ x: 110, y: 100 });
+  updateBlocking(b, [e], 0.1, 0);
+  assert.ok(e.blockedBy != null);   // 已被擋
+  releaseBarracks(b, [e]);
+  assert.equal(e.blockedBy, null);  // 賣掉後釋放
 });

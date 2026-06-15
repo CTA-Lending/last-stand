@@ -1,5 +1,6 @@
 import { TOWERS } from '../data/towers.js';
 import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue } from '../entities/tower.js';
+import { releaseBarracks } from '../systems/blocking.js';
 import { BALANCE } from '../data/balance.js';
 
 export function initBuildMenu(state) {
@@ -64,6 +65,7 @@ export function showTowerPanel(state) {
   }
   document.getElementById('sell').onclick = () => {
     state.economy.earn(sell);
+    if (t.kind === 'barracks') releaseBarracks(t, state.enemies); // 釋放被擋的敵人，避免永久卡住
     state.towers = state.towers.filter(x => x !== t);
     state.occupiedCells.delete(t.cellKey);
     state.selectedTower = null; panel.style.display = 'none';
