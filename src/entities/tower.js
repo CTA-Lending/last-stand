@@ -4,36 +4,49 @@ import { spawnProjectile } from './projectile.js';
 
 let nextId = 1;
 
-export function towerStats(type, level) {
-  return TOWERS[type].levels[level];
+function applyStats(t, s) {
+  t.range = s.range; t.damage = s.damage; t.fireRate = s.fireRate;
+  if (s.splash !== undefined) t.splash = s.splash;
+  if (s.effect !== undefined) t.effect = s.effect;
 }
 
 export function buildTower(type, slot) {
   const def = TOWERS[type];
   const s = def.levels[0];
-  return {
-    id: nextId++, type, slot, x: slot.x, y: slot.y,
-    attackType: def.attackType, canHitAir: def.canHitAir, splash: def.splash,
-    color: def.color, level: 0,
-    range: s.range, damage: s.damage, fireRate: s.fireRate,
-    cooldown: 0, priority: 'first',
-    effect: def.effect || null,
+  const t = {
+    id: nextId++, type, x: slot.x, y: slot.y,
+    attackType: def.attackType, canHitAir: def.canHitAir, splash: def.splash || 0,
+    effect: def.effect || null, color: def.color, level: 0, branch: null,
+    cooldown: 0, priority: 'first', invested: s.cost,
   };
+  applyStats(t, s);
+  return t;
 }
 
+export function canUpgrade(t) { return t.level < TOWERS[t.type].levels.length - 1; }
+export function upgradeCost(t) {
+  return canUpgrade(t) ? TOWERS[t.type].levels[t.level + 1].cost : null;
+}
 export function upgradeTower(t) {
-  const def = TOWERS[t.type];
-  if (t.level >= def.levels.length - 1) return false;
+  if (!canUpgrade(t)) return false;
   t.level += 1;
-  const s = def.levels[t.level];
-  t.range = s.range; t.damage = s.damage; t.fireRate = s.fireRate;
+  const s = TOWERS[t.type].levels[t.level];
+  applyStats(t, s); t.invested += s.cost;
   return true;
 }
 
-export function upgradeCost(t) {
-  const def = TOWERS[t.type];
-  return t.level >= def.levels.length - 1 ? null : def.levels[t.level + 1].cost;
+export function canBranch(t) {
+  return t.level === TOWERS[t.type].levels.length - 1 && t.branch === null;
 }
+export function branchOptions(t) { return TOWERS[t.type].branches; }
+export function chooseBranch(t, i) {
+  if (!canBranch(t)) return false;
+  const b = TOWERS[t.type].branches[i];
+  applyStats(t, b); t.branch = i; t.invested += b.cost;
+  return true;
+}
+
+export function sellValue(t, refundRate) { return Math.floor(t.invested * refundRate); }
 
 export function updateTower(t, enemies, projectiles, dt) {
   t.cooldown -= dt;

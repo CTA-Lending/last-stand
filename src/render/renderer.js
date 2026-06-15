@@ -44,6 +44,10 @@ function drawTower(ctx, t) {
     ctx.fillStyle = '#fff';
     ctx.fillRect(t.x - 12 + i * 7, t.y + 14, 4, 4);
   }
+  if (t.branch != null) {
+    ctx.fillStyle = '#ffd35a';
+    ctx.fillRect(t.x + 9, t.y - 13, 5, 5);
+  }
 }
 
 function drawEnemy(ctx, e) {
