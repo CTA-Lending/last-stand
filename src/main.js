@@ -7,14 +7,14 @@ import { render } from './render/renderer.js';
 import { updateParticles, burst, spark } from './render/particles.js';
 import { buildWave } from './systems/endlessDirector.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
-import { buildTower, updateTower, isTowerUnlocked } from './entities/tower.js';
+import { buildTower, updateTower } from './entities/tower.js';
 import { updateBlocking } from './systems/blocking.js';
 import { applyAuras } from './systems/aura.js';
 import { updateMines } from './systems/mines.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver, showVictory } from './ui/hud.js';
-import { initBuildMenu, showTowerPanel, refreshBuildButtons, refreshBuildLocks } from './ui/buildMenu.js';
+import { initBuildMenu, showTowerPanel, refreshBuildButtons } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { cellOf, cellKey, cellCenter, nearestPointOnPath, pathSlots } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
@@ -27,6 +27,7 @@ import { openCollection } from './ui/collection.js';
 import { createLocalLeaderboard } from './systems/leaderboard.js';
 import { LEADERBOARD_SEED } from './data/leaderboardSeed.js';
 import { openLeaderboard } from './ui/leaderboard.js';
+import { runDiamonds } from './systems/account.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
@@ -44,6 +45,12 @@ function campaignKey(s) {
   return name + '.' + s.difficulty;
 }
 
+function awardDiamonds(s) {
+  const gained = runDiamonds({ mode: s.mode, won: s.won, difficulty: s.difficulty, wave: s.wave });
+  profile.diamonds += gained; save.saveProfile(profile);
+  return gained;
+}
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const save = createSaveService();
@@ -52,7 +59,7 @@ const mouse = { x: 0, y: 0 };
 let state, loop;
 
 const profile = save.loadProfile();
-const gachaUnlocked = new Set(profile.unlocked);
+const gachaUnlocked = new Set(profile.owned);
 const today = new Date().toISOString().slice(0, 10);
 if (isNewDay(profile.lastLogin, today)) { profile.tickets += 1; profile.lastLogin = today; save.saveProfile(profile); }
 
@@ -79,7 +86,7 @@ function initGachaButton() {
   bar.innerHTML = '';
   const b = document.createElement('button');
   b.textContent = '🎰 轉蛋 (' + profile.tickets + '券)';
-  b.onclick = () => openGacha({ profile, gachaUnlocked, save, onUnlock: () => { refreshBuildLocks(state); initGachaButton(); } });
+  b.onclick = () => openGacha({ profile, gachaUnlocked, save, onUnlock: () => { initGachaButton(); } });
   bar.appendChild(b);
 }
 
@@ -150,14 +157,16 @@ function update(dt) {
     const key = campaignKey(s);
     const time = Math.floor(s.economy.elapsed);
     save.submitCampaign(key, time);
-    showVictory(s, save.getCampaignBest(key), restart, enterLobby);
+    const dia = awardDiamonds(s);
+    showVictory(s, save.getCampaignBest(key), restart, enterLobby, dia);
   }
 
   if (s.economy.isDead() && !s.over) {
     s.over = true;
     const record = { wave: s.wave, time: Math.floor(s.economy.elapsed), score: s.economy.score };
     save.submit(record);
-    showGameOver(s, save.getBest(), restart, enterLobby);
+    const dia = awardDiamonds(s);
+    showGameOver(s, save.getBest(), restart, enterLobby, dia);
   }
 }
 
@@ -165,7 +174,6 @@ function draw() {
   render(ctx, state, mouse);
   updateHud(state);
   refreshSpellBar(state);
-  refreshBuildLocks(state);
 }
 
 canvas.addEventListener('mousemove', e => {
@@ -215,10 +223,6 @@ canvas.addEventListener('click', () => {
   }
   // 建塔：點哪格蓋哪格（非走道、未佔用、一格一塔）
   if (s.selectedTowerType) {
-    // 前置塔被賣掉等情況 → 已選的塔可能變回鎖定，擋下並退出建造
-    if (!isTowerUnlocked(s.selectedTowerType, s.towers, s.gachaUnlocked)) {
-      s.selectedTowerType = null; refreshBuildButtons(s); return;
-    }
     const { col, row } = cellOf(mouse.x, mouse.y, s.map.tile);
     const key = cellKey(col, row);
     if (s.buildableCells.has(key) && !s.occupiedCells.has(key)) {
@@ -288,6 +292,7 @@ function startRun() {
   showInGameUI(true);
   state = createGameState(currentMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
+  state.loadout = profile.loadout.slice();
   initBuildMenu(state); initSpellBar(state, onCast);
   maybeStartWave(state);
   if (!loop) loop = createLoop({ update, render: draw });
