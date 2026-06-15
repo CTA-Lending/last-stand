@@ -44,4 +44,16 @@ export const TOWERS = {
       { name: '烈焰風暴', cost: 170, damage: 60, range: 175, fireRate: 0.7, splash: 56, effect: { dot: { dps: 30, duration: 3 } } },
     ],
   },
+  human_barracks: {
+    name: '人類騎士兵營', faction: 'human', kind: 'barracks', canHitAir: false,
+    color: '#c9c2a8',
+    levels: [
+      { cost: 100, soldierHp: 60,  soldierDmg: 8,  soldierAtk: 0.9, maxSoldiers: 2, engageRange: 46 },
+      { cost: 90,  soldierHp: 100, soldierDmg: 13, soldierAtk: 1.0, maxSoldiers: 2, engageRange: 50 },
+    ],
+    branches: [
+      { name: '重裝騎士', cost: 150, soldierHp: 200, soldierDmg: 16, soldierAtk: 1.0, maxSoldiers: 3, engageRange: 54 },
+      { name: '聖殿守衛', cost: 150, soldierHp: 130, soldierDmg: 30, soldierAtk: 1.2, maxSoldiers: 2, engageRange: 54 },
+    ],
+  },
 };

@@ -8,6 +8,9 @@ function applyStats(t, s) {
   t.range = s.range; t.damage = s.damage; t.fireRate = s.fireRate;
   if (s.splash !== undefined) t.splash = s.splash;
   if (s.effect !== undefined) t.effect = s.effect;
+  for (const k of ['soldierHp', 'soldierDmg', 'soldierAtk', 'maxSoldiers', 'engageRange']) {
+    if (s[k] !== undefined) t[k] = s[k];
+  }
 }
 
 export function buildTower(type, slot) {
@@ -20,6 +23,11 @@ export function buildTower(type, slot) {
     cooldown: 0, priority: 'first', invested: s.cost,
   };
   applyStats(t, s);
+  if (def.kind === 'barracks') {
+    t.kind = 'barracks';
+    t.rally = null;       // 由 main 建造後用 nearestPointOnPath 設定
+    t.soldiers = [];
+  }
   return t;
 }
 
