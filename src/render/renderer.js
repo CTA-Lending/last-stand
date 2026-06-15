@@ -146,17 +146,36 @@ function drawEnemy(ctx, e, now) {
     ctx.strokeStyle = rgba('#ffd35a', 0.4 + 0.3 * p); ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(e.x, y, r + 5 + p * 2, 0, Math.PI * 2); ctx.stroke();
   }
+  // Boss 骨角(從身體後方探出)
+  if (e.boss) {
+    ctx.fillStyle = '#e6dabd';
+    ctx.beginPath(); ctx.moveTo(e.x - r * 0.55, y - r * 0.55); ctx.lineTo(e.x - r * 0.95, y - r * 1.3); ctx.lineTo(e.x - r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(e.x + r * 0.55, y - r * 0.55); ctx.lineTo(e.x + r * 0.95, y - r * 1.3); ctx.lineTo(e.x + r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
+  }
   // 身體
   ctx.fillStyle = e.hitFlash > 0 ? '#fff' : e.color;
   ctx.beginPath(); ctx.arc(e.x, y, r, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = e.hitFlash > 0 ? '#fff' : lighten(e.color, 40);
   ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
+  // 重甲護板
+  if (e.armorType === 'heavy') { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
   // 眼睛
-  const ex = r * 0.34, ey = -r * 0.1;
+  const ex = r * 0.34, ey = -r * 0.06;
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1a1320';
-  ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.1, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.1, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = e.boss ? '#ff5a4a' : '#1a1320';
+  ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.11, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.11, 0, Math.PI * 2); ctx.fill();
+  // 凶惡眉毛
+  ctx.strokeStyle = '#1a1320'; ctx.lineWidth = Math.max(1.4, r * 0.13); ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(e.x - ex - r * 0.26, y + ey - r * 0.34); ctx.lineTo(e.x - ex + r * 0.16, y + ey - r * 0.1);
+  ctx.moveTo(e.x + ex + r * 0.26, y + ey - r * 0.34); ctx.lineTo(e.x + ex - r * 0.16, y + ey - r * 0.1);
+  ctx.stroke(); ctx.lineCap = 'butt';
+  // Boss 獠牙嘴
+  if (e.boss) {
+    ctx.strokeStyle = '#1a1320'; ctx.lineWidth = Math.max(1.4, r * 0.1);
+    ctx.beginPath(); ctx.moveTo(e.x - r * 0.3, y + r * 0.36); ctx.lineTo(e.x - r * 0.08, y + r * 0.26); ctx.lineTo(e.x + r * 0.12, y + r * 0.4); ctx.lineTo(e.x + r * 0.32, y + r * 0.28); ctx.stroke();
+  }
   // 飛行翼影
   if (e.armorType === 'flying') {
     ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.5;

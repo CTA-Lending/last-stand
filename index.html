@@ -138,8 +138,14 @@
   .lvl-card.cleared{ border-color:var(--jade); box-shadow:0 0 14px rgba(95,211,178,.2); }
   .lvl-chapter{ color:var(--gold-b); font-family:var(--display); margin:16px 0 7px; letter-spacing:.05em; }
 
-  /* 轉蛋卡 */
-  .gacha-card{ margin:16px auto; padding:18px; border-radius:14px; width:210px; animation:rise .4s both; }
+  /* 轉蛋卡 + 開卡演出 */
+  .gacha-card{ margin:16px auto; padding:18px; border-radius:14px; width:210px;
+    animation:gachaReveal .6s cubic-bezier(.2,.9,.25,1.1) both, gachaGlow 1.8s ease-in-out infinite .6s; }
+  @keyframes gachaReveal{
+    0%{ opacity:0; transform:rotateY(90deg) scale(.7); filter:brightness(2.4); }
+    55%{ opacity:1; transform:rotateY(-8deg) scale(1.06); }
+    100%{ opacity:1; transform:none; filter:brightness(1); } }
+  @keyframes gachaGlow{ 0%,100%{ box-shadow:0 0 16px rgba(232,200,122,.25); } 50%{ box-shadow:0 0 30px rgba(232,200,122,.6); } }
 
   /* 排行榜 */
   .lb-row{ display:flex; justify-content:space-between; padding:8px 12px; border-radius:8px; font-size:14px; border:1px solid transparent; }
