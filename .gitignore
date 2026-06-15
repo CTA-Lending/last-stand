@@ -12,3 +12,6 @@ Thumbs.db
 
 # Build output
 dist/
+
+# Local preview config (workspace-root .claude is what the preview uses)
+.claude/
