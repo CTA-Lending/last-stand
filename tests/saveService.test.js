@@ -8,6 +8,13 @@ function fakeStorage() {
   return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) };
 }
 
+test('舊存檔的 unlocked 傳奇塔遷移併入 owned', () => {
+  const st = fakeStorage();
+  st.setItem('laststand.profile', JSON.stringify({ unlocked: ['dragon_whelp'], lastLogin: '2026-06-15' }));
+  const p = createSaveService(st).loadProfile();
+  assert.ok(p.owned.includes('dragon_whelp'));      // 遷移成功
+  assert.ok(p.owned.includes('elf_archer'));          // 起始塔仍在
+});
 test('無記錄時 best 為 null', () => {
   const s = createSaveService(fakeStorage());
   assert.equal(s.getBest(), null);

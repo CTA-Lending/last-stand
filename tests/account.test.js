@@ -23,6 +23,10 @@ test('toggleLoadout 上限與加減', () => {
   lo = toggleLoadout(lo, 'dwarf_cannon', LOADOUT_MAX); // 再點移除
   assert.ok(!lo.includes('dwarf_cannon'));
 });
+test('編隊至少保留 1 塔(不可清空)', () => {
+  const lo = toggleLoadout(['elf_archer'], 'elf_archer', LOADOUT_MAX);
+  assert.deepEqual(lo, ['elf_archer']); // 最後一塔移不掉
+});
 test('結算鑽石：戰役依難度、無盡依波數', () => {
   assert.equal(runDiamonds({ mode: 'campaign', won: true, difficulty: 'hell' }), 120);
   assert.equal(runDiamonds({ mode: 'campaign', won: false, difficulty: 'hell' }), 0); // 沒過關不給

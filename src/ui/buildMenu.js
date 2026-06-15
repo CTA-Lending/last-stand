@@ -1,5 +1,5 @@
 import { TOWERS } from '../data/towers.js';
-import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue, isTowerUnlocked, towerLockReason } from '../entities/tower.js';
+import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue } from '../entities/tower.js';
 import { releaseBarracks } from '../systems/blocking.js';
 import { pathSlots } from '../systems/grid.js';
 import { BALANCE } from '../data/balance.js';

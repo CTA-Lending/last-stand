@@ -14,7 +14,10 @@ export function canBuy(type, owned, diamonds) {
 }
 
 export function toggleLoadout(loadout, type, max) {
-  if (loadout.includes(type)) return loadout.filter(t => t !== type);
+  if (loadout.includes(type)) {
+    if (loadout.length <= 1) return loadout; // 至少保留 1 塔，避免空編隊鎖死
+    return loadout.filter(t => t !== type);
+  }
   if (loadout.length >= max) return loadout;
   return [...loadout, type];
 }
