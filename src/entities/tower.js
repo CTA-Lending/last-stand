@@ -8,6 +8,7 @@ function applyStats(t, s) {
   t.range = s.range; t.damage = s.damage; t.fireRate = s.fireRate;
   if (s.splash !== undefined) t.splash = s.splash;
   if (s.effect !== undefined) t.effect = s.effect;
+  if (s.chain !== undefined) t.chain = s.chain;
   for (const k of ['soldierHp', 'soldierDmg', 'soldierAtk', 'maxSoldiers', 'engageRange']) {
     if (s[k] !== undefined) t[k] = s[k];
   }
@@ -19,7 +20,7 @@ export function buildTower(type, slot) {
   const t = {
     id: nextId++, type, x: slot.x, y: slot.y,
     attackType: def.attackType, canHitAir: def.canHitAir, splash: def.splash || 0,
-    effect: def.effect || null, color: def.color, level: 0, branch: null,
+    effect: def.effect || null, color: def.color, chain: def.chain || null, level: 0, branch: null,
     cooldown: 0, priority: 'first', invested: s.cost,
   };
   applyStats(t, s);
