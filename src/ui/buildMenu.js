@@ -1,5 +1,5 @@
 import { TOWERS } from '../data/towers.js';
-import { upgradeTower, upgradeCost } from '../entities/tower.js';
+import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue } from '../entities/tower.js';
 import { BALANCE } from '../data/balance.js';
 
 export function initBuildMenu(state) {
@@ -23,8 +23,6 @@ function renderSelection(bar, state) {
   [...bar.children].forEach(b =>
     b.classList.toggle('active', b.dataset.type === state.selectedTowerType));
 }
-
-// 供外部(蓋完塔後)同步建造按鈕高亮
 export function refreshBuildButtons(state) {
   renderSelection(document.getElementById('buildbar'), state);
 }
@@ -33,18 +31,36 @@ export function showTowerPanel(state) {
   const panel = document.getElementById('towerpanel');
   const t = state.selectedTower;
   if (!t) { panel.style.display = 'none'; return; }
-  const cost = upgradeCost(t);
+  const def = TOWERS[t.type];
+  const sell = sellValue(t, BALANCE.sellRefund);
+  let actions = '';
+  if (canBranch(t)) {
+    const o = branchOptions(t);
+    actions = `<div class="branch-row">
+      <button id="br0">${o[0].name} (${o[0].cost}g)</button>
+      <button id="br1">${o[1].name} (${o[1].cost}g)</button></div>`;
+  } else if (canUpgrade(t)) {
+    actions = `<button id="upg">升級 (${upgradeCost(t)}g)</button>`;
+  } else {
+    actions = `<span>${t.branch != null ? def.branches[t.branch].name + ' · 已專精' : '已滿級'}</span>`;
+  }
   panel.style.display = 'block';
-  panel.innerHTML = `
-    <b>${TOWERS[t.type].name}</b> Lv.${t.level + 1}
+  const lvLabel = t.branch != null ? def.branches[t.branch].name : 'Lv.' + (t.level + 1);
+  panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
     <div>傷害 ${t.damage} · 射程 ${t.range}</div>
-    ${cost != null ? `<button id="upg">升級 (${cost}g)</button>` : '<span>已滿級</span>'}
-    <button id="sell">賣出 (+${Math.floor(TOWERS[t.type].levels[t.level].cost * BALANCE.sellRefund)}g)</button>`;
-  if (cost != null) document.getElementById('upg').onclick = () => {
-    if (state.economy.spend(cost)) { upgradeTower(t); showTowerPanel(state); }
-  };
+    ${actions}
+    <button id="sell">賣出 (+${sell}g)</button>`;
+  const upg = document.getElementById('upg');
+  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); showTowerPanel(state); } };
+  for (const i of [0, 1]) {
+    const bb = document.getElementById('br' + i);
+    if (bb) bb.onclick = () => {
+      const cost = branchOptions(t)[i].cost;
+      if (state.economy.spend(cost)) { chooseBranch(t, i); showTowerPanel(state); }
+    };
+  }
   document.getElementById('sell').onclick = () => {
-    state.economy.earn(Math.floor(TOWERS[t.type].levels[t.level].cost * BALANCE.sellRefund));
+    state.economy.earn(sell);
     state.towers = state.towers.filter(x => x !== t);
     state.occupiedCells.delete(t.cellKey);
     state.selectedTower = null; panel.style.display = 'none';
