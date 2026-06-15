@@ -399,7 +399,7 @@ function showInGameUI(show) {
   document.getElementById('hintbtn').style.display = show ? 'inline-block' : 'none';
 }
 
-const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用💰<b>金幣</b>升級　③ 撐過所有波次　<small>（點擊關閉）</small>';
+const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用💰<b>金幣</b>升級　③ 撐過所有波次<br><small>快捷鍵：<b>1-9</b> 選塔 · <b>Esc</b> 取消 · <b>空白鍵</b> 暫停　（點擊關閉）</small>';
 function showHint() {
   const hint = document.getElementById('hint');
   if (!hint.innerHTML.trim()) hint.innerHTML = HINT_HTML;
