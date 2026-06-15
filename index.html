@@ -37,6 +37,18 @@
   #mapbar button.active { border-color:#ffe08a; }
   #gachabtn button { margin-left:10px; font-size:13px; padding:3px 10px; cursor:pointer;
                      background:#4a3320; color:#ffe08a; border:1px solid #ffe08a; border-radius:6px; }
+  #dexbtn button { margin-left:8px; font-size:13px; padding:3px 10px; cursor:pointer;
+                   background:#2b3346; color:#bfe9ff; border:1px solid #3d4760; border-radius:6px; }
+  #dexoverlay { position:absolute; inset:0; background:rgba(0,0,0,.8); display:none;
+                align-items:center; justify-content:center; overflow:auto; }
+  .dex-panel { background:#1f2632; padding:20px 24px; border-radius:14px; max-width:760px; max-height:92%; overflow:auto; }
+  .dex-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+  .dex-card { background:#2a3340; border-radius:10px; padding:12px; font-size:12px; }
+  .dex-card.locked { opacity:.5; }
+  .dex-card h4 { margin:4px 0; font-size:14px; }
+  .dex-role { color:#9fb0c0; }
+  .dex-lore { color:#cbd4dd; margin-top:6px; line-height:1.5; }
+  .dex-close { display:block; margin:16px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
   #gachaoverlay { position:absolute; inset:0; background:rgba(0,0,0,.7); display:none;
                   align-items:center; justify-content:center; }
   .gacha-panel { background:#222a3a; padding:28px 36px; border-radius:14px; text-align:center; min-width:300px; }
@@ -58,12 +70,14 @@
     <span id="hud-next" style="color:#ffe08a;font-weight:bold;"></span>
     <span id="mapbar"></span>
     <span id="gachabtn"></span>
+    <span id="dexbtn"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
     <div id="towerpanel"></div>
     <div id="overlay"></div>
     <div id="gachaoverlay"></div>
+    <div id="dexoverlay"></div>
   </div>
   <div id="buildbar"></div>
   <div id="spellbar"></div>
