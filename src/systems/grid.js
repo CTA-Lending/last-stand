@@ -23,49 +23,53 @@ function pointSegDist(px, py, ax, ay, bx, by) {
   return dist(px, py, ax + dx * t, ay + dy * t);
 }
 
-// 回路徑折線上離 (x,y) 最近的投影點
-export function nearestPointOnPath(x, y, path) {
-  let best = { x: path[0].x, y: path[0].y }, bestD = Infinity;
-  for (let i = 0; i < path.length - 1; i++) {
-    const ax = path[i].x, ay = path[i].y, bx = path[i + 1].x, by = path[i + 1].y;
-    const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
-    let t = len2 ? ((x - ax) * dx + (y - ay) * dy) / len2 : 0;
-    t = Math.max(0, Math.min(1, t));
-    const px = ax + dx * t, py = ay + dy * t;
-    const d = dist(x, y, px, py);
-    if (d < bestD) { bestD = d; best = { x: px, y: py }; }
+// 回所有路徑折線上離 (x,y) 最近的投影點（接受 paths 陣列）
+export function nearestPointOnPath(x, y, paths) {
+  let best = null, bestD = Infinity;
+  for (const path of paths) {
+    for (let i = 0; i < path.length - 1; i++) {
+      const ax = path[i].x, ay = path[i].y, bx = path[i + 1].x, by = path[i + 1].y;
+      const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+      let t = len2 ? ((x - ax) * dx + (y - ay) * dy) / len2 : 0;
+      t = Math.max(0, Math.min(1, t));
+      const px = ax + dx * t, py = ay + dy * t;
+      const d = dist(x, y, px, py);
+      if (d < bestD) { bestD = d; best = { x: px, y: py }; }
+    }
   }
-  return best;
+  return best || { x: paths[0][0].x, y: paths[0][0].y };
 }
 
-// 點到整條 waypoint 折線的最短距離
-export function pathDistance(x, y, path) {
+// 點到所有 waypoint 折線的最短距離（接受 paths 陣列）
+export function pathDistance(x, y, paths) {
   let min = Infinity;
-  for (let i = 0; i < path.length - 1; i++) {
-    const d = pointSegDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
-    if (d < min) min = d;
-  }
+  for (const path of paths)
+    for (let i = 0; i < path.length - 1; i++) {
+      const d = pointSegDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
+      if (d < min) min = d;
+    }
   return min;
 }
 
 export function isBuildable(col, row, map) {
   const c = cellCenter(col, row, map.tile);
   if (c.x < 0 || c.y < 0 || c.x > map.width || c.y > map.height) return false;
-  return pathDistance(c.x, c.y, map.path) > BLOCK_RADIUS;
+  return pathDistance(c.x, c.y, map.paths) > BLOCK_RADIUS;
 }
 
-export function pathSlots(center, range, path, spacing) {
+export function pathSlots(center, range, paths, spacing) {
   const slots = [];
-  for (let i = 0; i < path.length - 1; i++) {
-    const a = path[i], b = path[i + 1];
-    const segLen = Math.hypot(b.x - a.x, b.y - a.y);
-    const steps = Math.max(1, Math.floor(segLen / spacing));
-    for (let s = 0; s <= steps; s++) {
-      const t = s / steps;
-      const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
-      if (Math.hypot(x - center.x, y - center.y) <= range) slots.push({ x, y });
+  for (const path of paths)
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = path[i], b = path[i + 1];
+      const segLen = Math.hypot(b.x - a.x, b.y - a.y);
+      const steps = Math.max(1, Math.floor(segLen / spacing));
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+        if (Math.hypot(x - center.x, y - center.y) <= range) slots.push({ x, y });
+      }
     }
-  }
   return slots;
 }
 
