@@ -20,25 +20,27 @@ function scaledStats(wave, typeKey) {
 }
 
 // 回傳這一波的 enemy 規格陣列（尚未含座標，spawn 時補）
-export function buildWave(wave) {
+export function buildWave(wave, hpMult = 1) {
   const count = E.baseCount + (wave - 1) * E.countPerWave;
   const pool = poolFor(wave);
   const list = [];
   for (let i = 0; i < count; i++) {
     const typeKey = pool[(wave - 1 + i) % pool.length];
     const s = scaledStats(wave, typeKey);
+    const hp = Math.round(s.hp * hpMult);
     list.push({
       type: typeKey, armorType: ENEMIES[typeKey].armorType,
-      hp: s.hp, maxHp: s.hp, speed: s.speed, bounty: s.bounty, boss: false,
+      hp, maxHp: hp, speed: s.speed, bounty: s.bounty, boss: false,
     });
   }
   if (wave % E.bossEvery === 0) {
     const useDemon = wave % E.demonBossEvery === 0;
     const bossType = useDemon ? 'demonlord' : 'deathknight';
     const s = scaledStats(wave, bossType);
+    const bossHp = Math.round(s.hp * E.bossHpMult * hpMult);
     list.push({
       type: bossType, armorType: ENEMIES[bossType].armorType,
-      hp: Math.round(s.hp * E.bossHpMult), maxHp: Math.round(s.hp * E.bossHpMult),
+      hp: bossHp, maxHp: bossHp,
       speed: s.speed, bounty: Math.round(s.bounty * E.bossBountyMult), boss: true,
     });
   }

@@ -1,5 +1,6 @@
 const KEY = 'laststand.endless.best';
 const PROFILE_KEY = 'laststand.profile';
+const CAMPAIGN_KEY = 'laststand.campaign';
 
 export function createSaveService(storage = globalThis.localStorage) {
   return {
@@ -28,5 +29,18 @@ export function createSaveService(storage = globalThis.localStorage) {
       try { return { ...def, ...JSON.parse(raw) }; } catch { return def; }
     },
     saveProfile(p) { if (storage) storage.setItem(PROFILE_KEY, JSON.stringify(p)); },
+    getCampaignBest(key) {
+      const raw = storage ? storage.getItem(CAMPAIGN_KEY) : null;
+      let all = {};
+      if (raw) { try { all = JSON.parse(raw); } catch { all = {}; } }
+      return all[key] != null ? all[key] : null;
+    },
+    submitCampaign(key, time) {
+      const raw = storage ? storage.getItem(CAMPAIGN_KEY) : null;
+      let all = {};
+      if (raw) { try { all = JSON.parse(raw); } catch { all = {}; } }
+      if (all[key] == null || time < all[key]) { all[key] = time; storage.setItem(CAMPAIGN_KEY, JSON.stringify(all)); return true; }
+      return false;
+    },
   };
 }

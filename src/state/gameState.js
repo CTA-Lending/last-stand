@@ -3,9 +3,14 @@ import { BALANCE } from '../data/balance.js';
 import { createSpellState } from '../systems/spells.js';
 import { computeBuildableCells } from '../systems/grid.js';
 
-export function createGameState(map) {
+export function createGameState(map, opts = {}) {
+  const mode = opts.mode || 'endless';
   return {
-    map,
+    map, mode,
+    difficulty: opts.difficulty || 'normal',
+    hpMult: opts.hpMult || 1,
+    totalWaves: mode === 'campaign' ? (opts.totalWaves || 15) : Infinity,
+    won: false,
     economy: createEconomy({ gold: BALANCE.startGold, lives: BALANCE.startLives }),
     enemies: [], towers: [], projectiles: [],
     buildableCells: computeBuildableCells(map), // 除走道外的可蓋格 key

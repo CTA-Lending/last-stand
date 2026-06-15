@@ -39,3 +39,11 @@ test('saveProfile/loadProfile 往返', () => {
   assert.deepEqual(p.unlocked, ['dragon_whelp']);
   assert.equal(p.lastLogin, '2026-06-15');
 });
+test('戰役最佳取最短時間', () => {
+  const st = fakeStorage(); const s = createSaveService(st);
+  assert.equal(s.getCampaignBest('map1.normal'), null);
+  s.submitCampaign('map1.normal', 120);
+  s.submitCampaign('map1.normal', 90);
+  s.submitCampaign('map1.normal', 150);
+  assert.equal(createSaveService(st).getCampaignBest('map1.normal'), 90);
+});
