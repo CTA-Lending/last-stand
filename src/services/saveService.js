@@ -1,3 +1,5 @@
+import { STARTER_TOWERS } from '../systems/account.js';
+
 const KEY = 'laststand.endless.best';
 const PROFILE_KEY = 'laststand.profile';
 const CAMPAIGN_KEY = 'laststand.campaign';
@@ -24,7 +26,8 @@ export function createSaveService(storage = globalThis.localStorage) {
     },
     loadProfile() {
       const raw = storage ? storage.getItem(PROFILE_KEY) : null;
-      const def = { tickets: 0, unlocked: [], lastLogin: null };
+      const def = { tickets: 0, unlocked: [], lastLogin: null, diamonds: 0,
+        owned: [...STARTER_TOWERS], loadout: [...STARTER_TOWERS] };
       if (!raw) return def;
       try { return { ...def, ...JSON.parse(raw) }; } catch { return def; }
     },

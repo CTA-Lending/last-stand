@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSaveService } from '../src/services/saveService.js';
+import { STARTER_TOWERS } from '../src/systems/account.js';
 
 function fakeStorage() {
   const m = new Map();
@@ -38,6 +39,13 @@ test('saveProfile/loadProfile 往返', () => {
   assert.equal(p.tickets, 2);
   assert.deepEqual(p.unlocked, ['dragon_whelp']);
   assert.equal(p.lastLogin, '2026-06-15');
+});
+test('profile 預設含 diamonds/owned(起始4)/loadout', () => {
+  const s = createSaveService(fakeStorage());
+  const p = s.loadProfile();
+  assert.equal(p.diamonds, 0);
+  assert.deepEqual(p.owned, STARTER_TOWERS);
+  assert.deepEqual(p.loadout, STARTER_TOWERS);
 });
 test('戰役最佳取最短時間', () => {
   const st = fakeStorage(); const s = createSaveService(st);
