@@ -150,14 +150,14 @@ function update(dt) {
     const key = campaignKey(s);
     const time = Math.floor(s.economy.elapsed);
     save.submitCampaign(key, time);
-    showVictory(s, save.getCampaignBest(key), restart);
+    showVictory(s, save.getCampaignBest(key), restart, enterLobby);
   }
 
   if (s.economy.isDead() && !s.over) {
     s.over = true;
     const record = { wave: s.wave, time: Math.floor(s.economy.elapsed), score: s.economy.score };
     save.submit(record);
-    showGameOver(s, save.getBest(), restart);
+    showGameOver(s, save.getBest(), restart, enterLobby);
   }
 }
 
@@ -247,7 +247,7 @@ function initMapPicker() {
     const b = document.createElement('button');
     b.textContent = m.name;
     b.classList.toggle('active', m.map === currentMap);
-    b.onclick = () => { currentMap = m.map; restart(); initMapPicker(); };
+    b.onclick = () => { currentMap = m.map; initMapPicker(); };
     bar.appendChild(b);
   });
 }
@@ -256,41 +256,52 @@ function initModePicker() {
   const bar = document.getElementById('modebar');
   bar.innerHTML = '模式';
   const mk = (label, on) => { const b = document.createElement('button'); b.textContent = label; b.onclick = on; bar.appendChild(b); return b; };
-  const endlessB = mk('無盡', () => { currentMode = 'endless'; restart(); initModePicker(); });
-  const campB = mk('戰役', () => { currentMode = 'campaign'; restart(); initModePicker(); });
+  const endlessB = mk('無盡', () => { currentMode = 'endless'; initModePicker(); });
+  const campB = mk('戰役', () => { currentMode = 'campaign'; initModePicker(); });
   endlessB.classList.toggle('active', currentMode === 'endless');
   campB.classList.toggle('active', currentMode === 'campaign');
   if (currentMode === 'campaign') {
     ['normal', 'hero', 'hell'].forEach(d => {
       const label = { normal: '普通', hero: '英雄', hell: '地獄' }[d];
-      const b = mk(label, () => { currentDifficulty = d; restart(); initModePicker(); });
+      const b = mk(label, () => { currentDifficulty = d; initModePicker(); });
       b.classList.toggle('active', currentDifficulty === d);
     });
   }
 }
 
-function restart() {
+function showInGameUI(show) {
+  document.getElementById('buildbar').style.display = show ? 'flex' : 'none';
+  document.getElementById('spellbar').style.display = show ? 'flex' : 'none';
+}
+
+function enterLobby() {
+  if (loop) loop.stop();
+  document.getElementById('lobby').style.display = 'flex';
+  document.getElementById('overlay').style.display = 'none';
+  showInGameUI(false);
+  initModePicker(); initMapPicker();
+}
+
+function startRun() {
+  document.getElementById('lobby').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+  showInGameUI(true);
   state = createGameState(currentMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
-  initBuildMenu(state);
-  initSpellBar(state, onCast);
+  initBuildMenu(state); initSpellBar(state, onCast);
   maybeStartWave(state);
-  initMapPicker();
-  initModePicker();
+  if (!loop) loop = createLoop({ update, render: draw });
+  loop.start();
+}
+
+function restart() {
+  startRun();
 }
 
 function boot() {
-  state = createGameState(currentMap, gameOpts());
-  state.gachaUnlocked = gachaUnlocked;
-  initBuildMenu(state);
-  initSpellBar(state, onCast);
-  maybeStartWave(state);
   loop = createLoop({ update, render: draw });
-  initMapPicker();
-  initModePicker();
-  initGachaButton();
-  initDexButton();
-  initLbButton();
-  loop.start();
+  initGachaButton(); initDexButton(); initLbButton();
+  document.getElementById('enterRun').onclick = () => startRun();
+  enterLobby();
 }
 boot();
