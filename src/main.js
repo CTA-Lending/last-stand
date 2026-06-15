@@ -10,7 +10,7 @@ import { buildTower, updateTower } from './entities/tower.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver } from './ui/hud.js';
-import { initBuildMenu, showTowerPanel } from './ui/buildMenu.js';
+import { initBuildMenu, showTowerPanel, refreshBuildButtons } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { cellOf, cellKey, cellCenter } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
@@ -139,6 +139,8 @@ canvas.addEventListener('click', () => {
         t.cellKey = key;
         s.towers.push(t);
         s.occupiedCells.add(key);
+        s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
+        refreshBuildButtons(s);
       }
     }
     return;

@@ -24,6 +24,11 @@ function renderSelection(bar, state) {
     b.classList.toggle('active', b.dataset.type === state.selectedTowerType));
 }
 
+// 供外部(蓋完塔後)同步建造按鈕高亮
+export function refreshBuildButtons(state) {
+  renderSelection(document.getElementById('buildbar'), state);
+}
+
 export function showTowerPanel(state) {
   const panel = document.getElementById('towerpanel');
   const t = state.selectedTower;
