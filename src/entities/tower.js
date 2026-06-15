@@ -88,6 +88,7 @@ export function updateTower(t, enemies, projectiles, dt) {
   if (t.feared && Math.random() < 0.35) { t.cooldown = 0.2; return; } // 恐懼:機率不發
   const target = selectTarget(t, enemies);
   if (!target) return;
+  t.aimAngle = Math.atan2(target.y - t.y, target.x - t.x);
   projectiles.push(spawnProjectile(t, target));
   const rate = t.fireRate * (t.buffRate || 1) * (t.debuffRate || 1);
   t.cooldown = 1 / rate;
