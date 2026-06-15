@@ -49,7 +49,29 @@
   .build-btn.locked{ opacity:.4; cursor:not-allowed; filter:grayscale(.4); }
   .build-btn.locked:hover{ transform:none; box-shadow:0 4px 12px rgba(0,0,0,.3); }
   .build-btn.locked .req{ color:var(--rose); }
+  .build-btn.cantafford{ opacity:.5; }
+  .build-btn.cantafford .req{ color:var(--rose); }
   .req{ color:var(--dim); }
+
+  /* 遊戲中控制列 */
+  #hud-controls{ margin-left:auto; gap:6px; align-items:center; }
+  #hud-controls button{ font-family:var(--body); font-size:12px; padding:3px 9px; cursor:pointer;
+    background:rgba(255,255,255,.06); color:var(--ink); border:1px solid var(--edge-soft); border-radius:8px; transition:.15s; }
+  #hud-controls button:hover{ border-color:var(--edge); background:rgba(232,200,122,.1); }
+  #hud-controls button.active-pause{ border-color:var(--rose); color:var(--rose); }
+
+  /* 暫停遮罩提示 */
+  #pause-overlay{ position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:5;
+    pointer-events:none; }
+  #pause-overlay span{ font-family:var(--display); font-size:38px; color:var(--gold-b);
+    text-shadow:0 0 22px rgba(232,200,122,.5),0 2px 8px #000; letter-spacing:.06em; }
+
+  /* 新手提示 */
+  #hint{ display:none; text-align:center; font-size:13px; color:var(--dim);
+    padding:8px 18px; margin:0 auto 4px; max-width:660px;
+    background:rgba(34,27,51,.85); border:1px solid var(--edge-soft); border-radius:10px;
+    cursor:pointer; z-index:2; position:relative; }
+  #hint b{ color:var(--gold-b); }
 
   #spellbar{ display:flex; gap:10px; padding:0 10px 16px; justify-content:center; z-index:1; }
   .spell-btn{ background:linear-gradient(180deg,#3a2b4a,#281f38); color:var(--ink);
@@ -173,11 +195,13 @@
     <span>⭐<b id="hud-score">0</b></span>
     <span>⏱️<b id="hud-time">0s</b></span>
     <span id="hud-next" style="font-weight:bold;"></span>
+    <span id="hud-controls"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
     <div id="wavebanner"></div>
     <div id="towerpanel"></div>
+    <div id="pause-overlay"><span>⏸ 已暫停</span></div>
     <div id="overlay"></div>
     <div id="gachaoverlay"></div>
     <div id="dexoverlay"></div>
@@ -198,6 +222,7 @@
       </div>
     </div>
   </div>
+  <div id="hint">① 點下方選塔 → 點地圖空地放置　② 用💰<b>金幣</b>升級　③ 撐過所有波次　<small>（點擊關閉）</small></div>
   <div id="buildbar"></div>
   <div id="spellbar"></div>
   <script type="module" src="src/main.js"></script>

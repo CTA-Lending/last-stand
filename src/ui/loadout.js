@@ -1,5 +1,5 @@
 import { TOWERS } from '../data/towers.js';
-import { toggleLoadout, LOADOUT_MAX } from '../systems/account.js';
+import { toggleLoadout, LOADOUT_MAX, towerSummary } from '../systems/account.js';
 
 export function openLoadout(profile, save, onChange) {
   const ov = document.getElementById('loadoutoverlay');
@@ -7,7 +7,8 @@ export function openLoadout(profile, save, onChange) {
     const cards = profile.owned.map(type => {
       const def = TOWERS[type]; const inLo = profile.loadout.includes(type);
       const full = !inLo && profile.loadout.length >= LOADOUT_MAX;
-      return `<div class="lo-card ${inLo ? 'in' : ''} ${full ? 'disabled' : ''}" data-type="${type}">
+      const summary = towerSummary(type);
+      return `<div class="lo-card ${inLo ? 'in' : ''} ${full ? 'disabled' : ''}" data-type="${type}" title="${summary}">
         <div style="font-size:20px;color:${def.color}">●</div>
         <div style="color:${def.color}">${def.name}</div>
         <div>${inLo ? '✓ 出戰' : (full ? '已滿' : '點選帶入')}</div>

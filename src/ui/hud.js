@@ -5,10 +5,12 @@ export function updateHud(state) {
     state.mode === 'campaign' ? state.wave + '/' + state.totalWaves : state.wave;
   document.getElementById('hud-score').textContent = state.economy.score;
   document.getElementById('hud-time').textContent = Math.floor(state.economy.elapsed) + 's';
-  document.getElementById('hud-next').textContent =
-    state.waveTimer > 0 && state.waveTimer < 3
-      ? '下一波 ' + Math.ceil(state.waveTimer) + 's'
-      : '';
+  const nextEl = document.getElementById('hud-next');
+  if (state.waveTimer > 0 && state.spawnQueue && state.spawnQueue.length === 0) {
+    nextEl.textContent = '下一波 ' + Math.ceil(state.waveTimer) + 's (▶提前)';
+  } else {
+    nextEl.textContent = '';
+  }
 }
 
 export function showVictory(state, bestTime, onRestart, onLobby, diamonds = 0) {

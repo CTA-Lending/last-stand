@@ -16,7 +16,7 @@ import { updateMines } from './systems/mines.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver, showVictory } from './ui/hud.js';
-import { initBuildMenu, showTowerPanel, refreshBuildButtons } from './ui/buildMenu.js';
+import { initBuildMenu, showTowerPanel, refreshBuildButtons, refreshBuildAfford } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { cellOf, cellKey, cellCenter, nearestPointOnPath, pathSlots } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
@@ -256,6 +256,7 @@ function draw() {
   render(ctx, state, mouse);
   updateHud(state);
   refreshSpellBar(state);
+  refreshBuildAfford(state);
 }
 
 canvas.addEventListener('mousemove', e => {
@@ -389,21 +390,100 @@ function initModePicker() {
 function showInGameUI(show) {
   document.getElementById('buildbar').style.display = show ? 'flex' : 'none';
   document.getElementById('spellbar').style.display = show ? 'flex' : 'none';
+  document.getElementById('hud-controls').style.display = show ? 'inline-flex' : 'none';
+}
+
+let _paused = false;
+
+function initRunControls() {
+  _paused = false;
+  const ctrl = document.getElementById('hud-controls');
+  const pauseOverlay = document.getElementById('pause-overlay');
+  ctrl.innerHTML = '';
+
+  // ▶ 提前開波
+  const earlyBtn = document.createElement('button');
+  earlyBtn.textContent = '▶ 提前開波';
+  earlyBtn.title = '立即開始下一波（波間等待期間有效）';
+  earlyBtn.onclick = () => {
+    if (_paused) return;
+    if (state && state.spawnQueue && state.spawnQueue.length === 0 && !state.over) {
+      state.waveTimer = 0;
+    }
+  };
+
+  // ⏸ 暫停
+  const pauseBtn = document.createElement('button');
+  pauseBtn.textContent = '⏸ 暫停';
+  pauseBtn.title = '暫停 / 繼續遊戲';
+  pauseBtn.onclick = () => {
+    if (!loop) return;
+    if (_paused) {
+      _paused = false;
+      pauseOverlay.style.display = 'none';
+      pauseBtn.textContent = '⏸ 暫停';
+      pauseBtn.classList.remove('active-pause');
+      loop.start();
+    } else {
+      _paused = true;
+      pauseOverlay.style.display = 'flex';
+      pauseBtn.textContent = '▶ 繼續';
+      pauseBtn.classList.add('active-pause');
+      loop.stop();
+    }
+  };
+
+  // 🏳 投降 (二次確認)
+  const forfeitBtn = document.createElement('button');
+  forfeitBtn.textContent = '🏳 投降';
+  forfeitBtn.title = '放棄本局（點兩下確認）';
+  let forfeitArmed = false;
+  forfeitBtn.onclick = () => {
+    if (!forfeitArmed) {
+      forfeitArmed = true;
+      forfeitBtn.textContent = '確認投降?';
+      forfeitBtn.style.borderColor = 'var(--rose)';
+      forfeitBtn.style.color = 'var(--rose)';
+      setTimeout(() => {
+        if (forfeitArmed) {
+          forfeitArmed = false;
+          forfeitBtn.textContent = '🏳 投降';
+          forfeitBtn.style.borderColor = '';
+          forfeitBtn.style.color = '';
+        }
+      }, 3000);
+    } else {
+      forfeitArmed = false;
+      // 若暫停中先恢復 loop 再進大廳
+      if (_paused) { _paused = false; pauseOverlay.style.display = 'none'; loop.start(); }
+      enterLobby();
+    }
+  };
+
+  ctrl.appendChild(earlyBtn);
+  ctrl.appendChild(pauseBtn);
+  ctrl.appendChild(forfeitBtn);
 }
 
 function enterLobby() {
+  _paused = false;
   if (loop) loop.stop();
+  document.getElementById('pause-overlay').style.display = 'none';
   document.getElementById('lobby').style.display = 'flex';
   document.getElementById('overlay').style.display = 'none';
+  document.getElementById('hint').style.display = 'none';
   showInGameUI(false);
   initModePicker(); initMapPicker(); refreshLobbyInfo();
 }
 
 function startRun() {
   unlockAudio();
+  _paused = false;
+  document.getElementById('pause-overlay').style.display = 'none';
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
   showInGameUI(true);
+  initRunControls();
   const runMap = (currentMode === 'campaign' && currentLevel)
     ? (currentLevel.map === 'map2' ? MAP2 : MAP1)
     : currentMap;
@@ -414,6 +494,16 @@ function startRun() {
   maybeStartWave(state);
   if (!loop) loop = createLoop({ update, render: draw });
   loop.start();
+
+  // 新手提示：首次進入副本才顯示
+  if (!profile.seenTutorial) {
+    profile.seenTutorial = true;
+    save.saveProfile(profile);
+    const hint = document.getElementById('hint');
+    hint.style.display = 'block';
+    hint.onclick = () => { hint.style.display = 'none'; };
+    setTimeout(() => { hint.style.display = 'none'; }, 8000);
+  }
 }
 
 function restart() {

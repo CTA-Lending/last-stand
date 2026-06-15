@@ -3,6 +3,7 @@ import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, choose
 import { releaseBarracks } from '../systems/blocking.js';
 import { pathSlots } from '../systems/grid.js';
 import { BALANCE } from '../data/balance.js';
+import { towerSummary } from '../systems/account.js';
 
 // 地雷塔升級/分支改變 range 後，重算佈雷點(否則 range 升級是死數值)
 function refreshMineSlots(t, state) {
@@ -17,6 +18,7 @@ export function initBuildMenu(state) {
     const b = document.createElement('button');
     b.className = 'build-btn';
     b.innerHTML = `<span style="color:${def.color}">●</span> ${def.name}<br><small class="req">${def.levels[0].cost}g</small>`;
+    b.title = towerSummary(type);
     b.onclick = () => {
       state.selectedTowerType = state.selectedTowerType === type ? null : type;
       state.selectedTower = null;
@@ -35,15 +37,35 @@ export function refreshBuildButtons(state) {
   renderSelection(document.getElementById('buildbar'), state);
 }
 
+/** 即時更新買不起的視覺變灰 */
+export function refreshBuildAfford(state) {
+  const bar = document.getElementById('buildbar');
+  if (!bar) return;
+  for (const b of bar.children) {
+    const type = b.dataset.type;
+    if (!type || !TOWERS[type]) continue;
+    const cost = TOWERS[type].levels[0].cost;
+    if (state.economy.gold < cost) {
+      b.classList.add('cantafford');
+    } else {
+      b.classList.remove('cantafford');
+    }
+  }
+}
+
 // 保留空函式避免破壞既有呼叫點（帶隊制下不再需要鎖定外觀）
 export function refreshBuildLocks(_state) {}
+
+// 賣出二次確認：記錄目前「已武裝」的塔 id（用 x,y 組合唯一辨識）
+let sellArmed = null;
 
 export function showTowerPanel(state) {
   const panel = document.getElementById('towerpanel');
   const t = state.selectedTower;
-  if (!t) { panel.style.display = 'none'; return; }
+  if (!t) { panel.style.display = 'none'; sellArmed = null; return; }
   const def = TOWERS[t.type];
   const sell = sellValue(t, BALANCE.sellRefund);
+  const towerKey = t.x + ',' + t.y;
   let actions = '';
   if (canBranch(t)) {
     const o = branchOptions(t);
@@ -64,10 +86,14 @@ export function showTowerPanel(state) {
     : t.kind === 'mine'
     ? `<div>地雷 ${t.maxMines}顆 · 傷害${t.damage} 範圍${t.splash}</div>`
     : `<div>傷害 ${t.damage} · 射程 ${t.range}</div>`;
+
+  const armed = sellArmed === towerKey;
+  const sellLabel = armed ? `確認賣出 (+${sell}g)?` : `賣出 (+${sell}g)`;
+
   panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
     ${statLine}
     ${actions}
-    <button id="sell">賣出 (+${sell}g)</button>`;
+    <button id="sell" ${armed ? 'style="border-color:var(--rose);color:var(--rose);"' : ''}>${sellLabel}</button>`;
   const upg = document.getElementById('upg');
   if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); refreshMineSlots(t, state); showTowerPanel(state); } };
   for (const i of [0, 1]) {
@@ -78,6 +104,14 @@ export function showTowerPanel(state) {
     };
   }
   document.getElementById('sell').onclick = () => {
+    if (sellArmed !== towerKey) {
+      // 第一下：武裝確認
+      sellArmed = towerKey;
+      showTowerPanel(state);
+      return;
+    }
+    // 第二下：真正賣出
+    sellArmed = null;
     state.economy.earn(sell);
     if (t.kind === 'barracks') releaseBarracks(t, state.enemies); // 釋放被擋的敵人，避免永久卡住
     state.towers = state.towers.filter(x => x !== t);

@@ -1,5 +1,5 @@
 import { TOWERS } from '../data/towers.js';
-import { canBuy, buyPrice, isOwned } from '../systems/account.js';
+import { canBuy, buyPrice, isOwned, towerSummary } from '../systems/account.js';
 
 export function openShop(profile, save, onChange) {
   const ov = document.getElementById('shopoverlay');
@@ -7,11 +7,22 @@ export function openShop(profile, save, onChange) {
     const cards = Object.entries(TOWERS).filter(([, d]) => d.diamond != null).map(([type, def]) => {
       const owned = isOwned(type, profile.owned);
       const buyable = canBuy(type, profile.owned, profile.diamonds);
+      // 前置塔前提檢查（UI 層）
+      const prereqs = def.requires || [];
+      const prereqMet = prereqs.every(r => profile.owned.includes(r));
+      const lockLine = !owned && !prereqMet
+        ? `<div style="color:var(--rose);font-size:11px;margin-top:3px;">🔒 需先擁有 ${prereqs.map(r => TOWERS[r] ? TOWERS[r].name : r).join('、')}</div>`
+        : '';
+      const stats = `<div style="color:var(--dim);font-size:11px;margin-top:3px;">${towerSummary(type)}</div>`;
+      // 買鈕：不可購或前置未達到時 disabled
+      const btnDisabled = !buyable || !prereqMet ? 'disabled' : '';
       return `<div class="shop-card ${owned ? 'owned' : ''}" data-type="${type}">
         <div style="font-size:22px;color:${def.color}">●</div>
         <div style="color:${def.color}">${def.name}</div>
+        ${stats}
         <div>${owned ? '已擁有' : '💎' + buyPrice(type)}</div>
-        ${owned ? '' : `<button ${buyable ? '' : 'disabled'} data-buy="${type}">購買</button>`}
+        ${lockLine}
+        ${owned ? '' : `<button ${btnDisabled} data-buy="${type}">購買</button>`}
       </div>`;
     }).join('');
     ov.innerHTML = `<div class="shop-panel"><h2>🏪 商城</h2>
@@ -21,7 +32,9 @@ export function openShop(profile, save, onChange) {
     ov.querySelector('.ov-close').onclick = () => { ov.style.display = 'none'; };
     ov.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
       const type = b.dataset.buy;
-      if (canBuy(type, profile.owned, profile.diamonds)) {
+      const prereqs = TOWERS[type].requires || [];
+      const prereqMet = prereqs.every(r => profile.owned.includes(r));
+      if (prereqMet && canBuy(type, profile.owned, profile.diamonds)) {
         profile.diamonds -= buyPrice(type); profile.owned.push(type);
         save.saveProfile(profile); onChange(); render();
       }
