@@ -92,6 +92,13 @@
   .lo-card.in { border:2px solid #ffe08a; }
   .lo-card.disabled { opacity:.4; }
   .ov-close { display:block; margin:16px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
+  #leveloverlay { position:absolute; inset:0; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; z-index:6; }
+  .lvl-panel { background:#1f2632; padding:22px 26px; border-radius:14px; max-width:720px; max-height:90%; overflow:auto; }
+  .lvl-chapter { color:#ffd973; margin:14px 0 6px; }
+  .lvl-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .lvl-card { background:#2a3340; border-radius:10px; padding:10px; font-size:12px; text-align:center; cursor:pointer; }
+  .lvl-card.locked { opacity:.4; cursor:default; }
+  .lvl-card.cleared { border:2px solid #5fd35f; }
 </style>
 </head>
 <body>
@@ -112,6 +119,7 @@
     <div id="lboverlay"></div>
     <div id="shopoverlay"></div>
     <div id="loadoutoverlay"></div>
+    <div id="leveloverlay"></div>
     <div id="lobby">
       <div class="lobby-panel">
         <h1>🏰 守關者 · 大廳</h1>
