@@ -29,3 +29,17 @@ test('strong 選血量最高', () => {
   ]);
   assert.equal(t.id, 2);
 });
+test('last 選路徑最後（seg 小者）', () => {
+  const t = selectTarget({ ...tower, priority: 'last' }, [
+    enemy({ id: 1, x: 10, y: 0, seg: 0 }),
+    enemy({ id: 2, x: 20, y: 0, seg: 2 }),
+  ]);
+  assert.equal(t.id, 1);
+});
+test('near 選離塔最近', () => {
+  const t = selectTarget({ ...tower, priority: 'near' }, [
+    enemy({ id: 1, x: 80, y: 0 }),
+    enemy({ id: 2, x: 20, y: 0 }),
+  ]);
+  assert.equal(t.id, 2);
+});

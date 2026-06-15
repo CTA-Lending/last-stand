@@ -28,8 +28,8 @@ export function buildWave(wave) {
     const s = scaledStats(wave, 'deathknight');
     list.push({
       type: 'deathknight', armorType: 'heavy',
-      hp: s.hp * E.bossHpMult, maxHp: s.hp * E.bossHpMult,
-      speed: s.speed, bounty: s.bounty * E.bossBountyMult, boss: true,
+      hp: Math.round(s.hp * E.bossHpMult), maxHp: Math.round(s.hp * E.bossHpMult),
+      speed: s.speed, bounty: Math.round(s.bounty * E.bossBountyMult), boss: true,
     });
   }
   return list;
