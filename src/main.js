@@ -13,6 +13,10 @@ import { updateHud, showGameOver } from './ui/hud.js';
 import { initBuildMenu, showTowerPanel } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { TOWERS } from './data/towers.js';
+import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
+import { applyEffect } from './systems/effects.js';
+import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
+import { computeDamage } from './systems/combat.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -31,6 +35,7 @@ function update(dt) {
   const s = state;
   if (s.over) return;
   s.now += dt;
+  tickSpells(s.spells, dt);
   s.economy.tick(dt);
 
   // 生怪排程
@@ -74,6 +79,7 @@ function update(dt) {
 function draw() {
   render(ctx, state, mouse);
   updateHud(state);
+  refreshSpellBar(state);
 }
 
 canvas.addEventListener('mousemove', e => {
@@ -81,8 +87,41 @@ canvas.addEventListener('mousemove', e => {
   mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
 });
 
+function onCast(key) {
+  const s = state;
+  if (s.over) return;
+  const def = SPELLS[key];
+  if (!isReady(s.spells, key)) return;
+  if (def.targeted) {
+    s.castMode = s.castMode === key ? null : key; // 進入/取消點地模式
+  } else {
+    if (trigger(s.spells, key)) castFrost(s);
+  }
+}
+
+function castFrost(s) {
+  for (const e of s.enemies) if (e.alive) {
+    e.slowUntil = s.now + SPELLS.frost.duration; e.slowFactor = 0; // 凍結
+  }
+  burst(s.map.width / 2, s.map.height / 2, '#a9d8ff', 40);
+}
+
+function castFireRain(s, x, y) {
+  if (!trigger(s.spells, 'firerain')) return;
+  const def = SPELLS.firerain;
+  for (const e of s.enemies) if (e.alive) {
+    if (dist(x, y, e.x, e.y) <= def.radius) {
+      e.hp -= computeDamage(def.damage, def.attackType, e.armorType);
+      e.hitFlash = 0.15;
+    }
+  }
+  burst(x, y, '#ff7a2f', 36);
+  s.castMode = null;
+}
+
 canvas.addEventListener('click', () => {
   const s = state;
+  if (s.castMode === 'firerain') { castFireRain(s, mouse.x, mouse.y); return; }
   // 點到已有塔 → 選取
   const hitTower = s.towers.find(t => dist(t.x, t.y, mouse.x, mouse.y) < 16);
   if (hitTower && !s.selectedTowerType) {
@@ -112,12 +151,14 @@ canvas.addEventListener('click', () => {
 function restart() {
   state = createGameState(MAP1);
   initBuildMenu(state);
+  initSpellBar(state, onCast);
   startWave(state);
 }
 
 function boot() {
   state = createGameState(MAP1);
   initBuildMenu(state);
+  initSpellBar(state, onCast);
   startWave(state);
   loop = createLoop({ update, render: draw });
   loop.start();

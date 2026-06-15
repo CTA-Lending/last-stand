@@ -1,5 +1,6 @@
 import { drawParticles } from './particles.js';
 import { TOWERS } from '../data/towers.js';
+import { SPELLS } from '../systems/spells.js';
 
 function drawTerrain(ctx, map) {
   ctx.fillStyle = '#cfe3c4'; ctx.fillRect(0, 0, map.width, map.height);
@@ -46,6 +47,15 @@ function drawEnemy(ctx, e) {
     ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 4, 0, Math.PI * 2); ctx.stroke();
   }
+  // 減速/凍結外圈
+  if (e.slowUntil > 0 && e.slowFactor < 1) {
+    ctx.strokeStyle = e.slowFactor === 0 ? '#bfe9ff' : '#7fc7ff';
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI * 2); ctx.stroke();
+  }
+  // 持續傷害綠點
+  if (e.dots && e.dots.length) {
+    ctx.fillStyle = '#7fe04a'; ctx.beginPath(); ctx.arc(e.x + e.radius, e.y - e.radius, 3, 0, Math.PI * 2); ctx.fill();
+  }
   // 血條
   const w = e.radius * 2, ratio = Math.max(0, e.hp / e.maxHp);
   ctx.fillStyle = '#000'; ctx.fillRect(e.x - w / 2, e.y - e.radius - 8, w, 4);
@@ -77,5 +87,13 @@ export function render(ctx, state, mouse) {
     const t = state.selectedTower;
     ctx.strokeStyle = 'rgba(255,255,0,0.7)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
+  }
+  // 火雨點地預覽圓
+  if (state.castMode === 'firerain') {
+    ctx.strokeStyle = 'rgba(255,80,20,0.7)';
+    ctx.fillStyle = 'rgba(255,80,20,0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(mouse.x, mouse.y, SPELLS.firerain.radius, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
   }
 }

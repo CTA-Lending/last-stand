@@ -1,5 +1,6 @@
 import { createEconomy } from '../systems/economy.js';
 import { BALANCE } from '../data/balance.js';
+import { createSpellState } from '../systems/spells.js';
 
 export function createGameState(map) {
   return {
@@ -10,5 +11,7 @@ export function createGameState(map) {
     wave: 0, waveTimer: 0, spawnQueue: [], spawnTimer: 0,
     selectedTowerType: null, selectedTower: null,
     now: 0, over: false, started: false,
+    spells: createSpellState(),
+    castMode: null,
   };
 }
