@@ -17,6 +17,7 @@ export function buildTower(type, slot) {
     color: def.color, level: 0,
     range: s.range, damage: s.damage, fireRate: s.fireRate,
     cooldown: 0, priority: 'first',
+    effect: def.effect || null,
   };
 }
 

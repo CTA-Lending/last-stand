@@ -24,7 +24,8 @@ export function updateEnemy(e, map, dt, now) {
   }
   e.dots = e.dots.filter(d => now < d.until);
   if (e.hp <= 0) { e.alive = false; return; }
-  // 減速
+  // 減速（過期重設 factor 確保視覺一致）
+  if (now >= e.slowUntil) e.slowFactor = 1;
   const factor = now < e.slowUntil ? e.slowFactor : 1;
   if (e.hitFlash > 0) e.hitFlash -= dt;
   const moved = advancePath(map.path, e.seg, e.x, e.y, e.speed * factor * dt);

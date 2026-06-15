@@ -27,4 +27,24 @@ export const TOWERS = {
       { cost: 140, damage: 64, range: 140, fireRate: 1.4 },
     ],
   },
+  elf_druid: {
+    name: '精靈纏繞德魯伊', faction: 'elf', attackType: 'magic', canHitAir: true,
+    color: '#3bbf8f', splash: 0,
+    effect: { slow: { factor: 0.5, duration: 2 } },
+    levels: [
+      { cost: 80,  damage: 6,  range: 110, fireRate: 1.0 },
+      { cost: 70,  damage: 10, range: 120, fireRate: 1.1 },
+      { cost: 120, damage: 16, range: 130, fireRate: 1.2 },
+    ],
+  },
+  dwarf_mortar: {
+    name: '矮人燃燒投石', faction: 'dwarf', attackType: 'siege', canHitAir: false,
+    color: '#d8632f', splash: 48,
+    effect: { dot: { dps: 10, duration: 3 } },
+    levels: [
+      { cost: 120, damage: 22, range: 150, fireRate: 0.5 },
+      { cost: 110, damage: 40, range: 160, fireRate: 0.55 },
+      { cost: 170, damage: 70, range: 175, fireRate: 0.6 },
+    ],
+  },
 };
