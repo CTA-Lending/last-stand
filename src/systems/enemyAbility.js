@@ -1,5 +1,7 @@
 import { dist } from '../core/geometry.js';
 
+const ENEMY_CAP = 120; // 召喚軟上限：避免無上限召喚拖效能/卡波次
+
 export function applyEnemyAbilities(ctx, dt) {
   const { enemies, towers, economy, spawnMinion } = ctx;
   for (const e of enemies) {
@@ -25,7 +27,11 @@ export function applyEnemyAbilities(ctx, dt) {
         break;
       case 'summon':
         e.abilityCd -= dt;
-        if (e.abilityCd <= 0) { spawnMinion(e, a.minion); e.abilityCd = a.interval; }
+        if (e.abilityCd <= 0) {
+          // 軟上限內才召喚，避免無上限堆怪拖效能/卡住波次清空判定
+          if (enemies.reduce((n, o) => n + (o.alive ? 1 : 0), 0) < ENEMY_CAP) spawnMinion(e, a.minion);
+          e.abilityCd = a.interval;
+        }
         break;
     }
   }
