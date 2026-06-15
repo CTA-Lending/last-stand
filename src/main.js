@@ -13,7 +13,7 @@ import { applyAuras } from './systems/aura.js';
 import { updateMines } from './systems/mines.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
-import { updateHud, showGameOver } from './ui/hud.js';
+import { updateHud, showGameOver, showVictory } from './ui/hud.js';
 import { initBuildMenu, showTowerPanel, refreshBuildButtons, refreshBuildLocks } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { cellOf, cellKey, cellCenter, nearestPointOnPath, pathSlots } from './systems/grid.js';
@@ -27,6 +27,19 @@ import { openCollection } from './ui/collection.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
+let currentMode = 'endless';
+let currentDifficulty = 'normal';
+
+function gameOpts() {
+  if (currentMode !== 'campaign') return { mode: 'endless' };
+  return { mode: 'campaign', difficulty: currentDifficulty,
+    totalWaves: BALANCE.campaign.totalWaves, hpMult: BALANCE.campaign.difficulty[currentDifficulty] };
+}
+
+function campaignKey(s) {
+  const name = MAPS.find(m => m.map === s.map)?.name || 'map';
+  return name + '.' + s.difficulty;
+}
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -57,11 +70,13 @@ function initGachaButton() {
   bar.appendChild(b);
 }
 
-function startWave(s) {
+function maybeStartWave(s) {
+  if (s.wave >= s.totalWaves) return false;     // 戰役達標不再開波(無盡為 Infinity 永遠開)
   s.wave += 1;
-  s.spawnQueue = buildWave(s.wave);
+  s.spawnQueue = buildWave(s.wave, s.hpMult);
   s.spawnTimer = 0;
   s.waveTimer = BALANCE.endless.waveInterval;
+  return true;
 }
 
 function update(dt) {
@@ -73,7 +88,7 @@ function update(dt) {
 
   // 生怪排程
   s.waveTimer -= dt;
-  if (s.spawnQueue.length === 0 && s.enemies.every(e => !e.alive) && s.waveTimer <= 0) startWave(s);
+  if (s.spawnQueue.length === 0 && s.enemies.every(e => !e.alive) && s.waveTimer <= 0) maybeStartWave(s);
   if (s.spawnQueue.length > 0) {
     s.spawnTimer -= dt;
     if (s.spawnTimer <= 0) {
@@ -83,7 +98,7 @@ function update(dt) {
       s.spawnTimer = BALANCE.endless.spawnGap;
     }
   }
-  if (s.waveTimer <= 0 && s.spawnQueue.length === 0) startWave(s);
+  if (s.waveTimer <= 0 && s.spawnQueue.length === 0) maybeStartWave(s);
 
   applyAuras(s.towers);
   for (const t of s.towers) {
@@ -114,6 +129,16 @@ function update(dt) {
   }
   s.enemies = s.enemies.filter(e => e.alive || e.hitFlash > 0);
   updateParticles(dt);
+
+  // 戰役過關：撐過最後一波且全部清空
+  if (s.mode === 'campaign' && !s.over && s.wave >= s.totalWaves
+      && s.spawnQueue.length === 0 && s.enemies.every(e => !e.alive) && !s.economy.isDead()) {
+    s.over = true; s.won = true;
+    const key = campaignKey(s);
+    const time = Math.floor(s.economy.elapsed);
+    save.submitCampaign(key, time);
+    showVictory(s, save.getCampaignBest(key), restart);
+  }
 
   if (s.economy.isDead() && !s.over) {
     s.over = true;
@@ -214,23 +239,42 @@ function initMapPicker() {
   });
 }
 
+function initModePicker() {
+  const bar = document.getElementById('modebar');
+  bar.innerHTML = '模式';
+  const mk = (label, on) => { const b = document.createElement('button'); b.textContent = label; b.onclick = on; bar.appendChild(b); return b; };
+  const endlessB = mk('無盡', () => { currentMode = 'endless'; restart(); initModePicker(); });
+  const campB = mk('戰役', () => { currentMode = 'campaign'; restart(); initModePicker(); });
+  endlessB.classList.toggle('active', currentMode === 'endless');
+  campB.classList.toggle('active', currentMode === 'campaign');
+  if (currentMode === 'campaign') {
+    ['normal', 'hero', 'hell'].forEach(d => {
+      const label = { normal: '普通', hero: '英雄', hell: '地獄' }[d];
+      const b = mk(label, () => { currentDifficulty = d; restart(); initModePicker(); });
+      b.classList.toggle('active', currentDifficulty === d);
+    });
+  }
+}
+
 function restart() {
-  state = createGameState(currentMap);
+  state = createGameState(currentMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
   initBuildMenu(state);
   initSpellBar(state, onCast);
-  startWave(state);
+  maybeStartWave(state);
   initMapPicker();
+  initModePicker();
 }
 
 function boot() {
-  state = createGameState(currentMap);
+  state = createGameState(currentMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
   initBuildMenu(state);
   initSpellBar(state, onCast);
-  startWave(state);
+  maybeStartWave(state);
   loop = createLoop({ update, render: draw });
   initMapPicker();
+  initModePicker();
   initGachaButton();
   initDexButton();
   loop.start();

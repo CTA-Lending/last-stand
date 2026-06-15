@@ -2,6 +2,7 @@ export const BALANCE = {
   startGold: 250,
   startLives: 20,
   sellRefund: 0.6,
+  campaign: { totalWaves: 15, difficulty: { normal: 1, hero: 1.7, hell: 2.6 } },
   endless: {
     waveInterval: 16,   // 自動下一波的秒數
     spawnGap: 0.7,      // 同波怪間隔秒
