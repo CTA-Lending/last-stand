@@ -23,6 +23,7 @@ import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
 import { computeDamage } from './systems/combat.js';
 import { isNewDay } from './systems/gacha.js';
 import { openGacha } from './ui/gacha.js';
+import { openCollection } from './ui/collection.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
@@ -37,6 +38,15 @@ const profile = save.loadProfile();
 const gachaUnlocked = new Set(profile.unlocked);
 const today = new Date().toISOString().slice(0, 10);
 if (isNewDay(profile.lastLogin, today)) { profile.tickets += 1; profile.lastLogin = today; save.saveProfile(profile); }
+
+function initDexButton() {
+  const bar = document.getElementById('dexbtn');
+  bar.innerHTML = '';
+  const b = document.createElement('button');
+  b.textContent = '🎴 圖鑑';
+  b.onclick = () => openCollection(gachaUnlocked);
+  bar.appendChild(b);
+}
 
 function initGachaButton() {
   const bar = document.getElementById('gachabtn');
@@ -222,6 +232,7 @@ function boot() {
   loop = createLoop({ update, render: draw });
   initMapPicker();
   initGachaButton();
+  initDexButton();
   loop.start();
 }
 boot();
