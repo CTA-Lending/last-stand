@@ -16,6 +16,13 @@ test('更強的減速(factor較小)才覆蓋', () => {
   applyEffect(e, { slow: { factor: 0.8, duration: 2 } }, 0);
   assert.equal(e.slowFactor, 0.4);
 });
+test('減速過期後由較弱減速取代(不殘留舊強值)', () => {
+  const e = enemy();
+  applyEffect(e, { slow: { factor: 0.4, duration: 2 } }, 0);  // 0~2 生效
+  applyEffect(e, { slow: { factor: 0.8, duration: 2 } }, 5);  // 已過期，應取代為 0.8
+  assert.equal(e.slowFactor, 0.8);
+  assert.equal(e.slowUntil, 7);
+});
 test('套用DoT推入dots', () => {
   const e = enemy();
   applyEffect(e, { dot: { dps: 12, duration: 3 } }, 5);

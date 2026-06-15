@@ -3,8 +3,10 @@ export function applyEffect(enemy, effect, now) {
   if (!effect) return;
   if (effect.slow) {
     const until = now + effect.slow.duration;
-    // 取較強(factor較小)或更久者
-    if (effect.slow.factor < enemy.slowFactor || now >= enemy.slowUntil) {
+    // 已過期：直接以新減速取代（避免殘留舊的較強值）；仍生效中：取較強(factor較小)者
+    if (now >= enemy.slowUntil) {
+      enemy.slowFactor = effect.slow.factor;
+    } else {
       enemy.slowFactor = Math.min(enemy.slowFactor, effect.slow.factor);
     }
     enemy.slowUntil = Math.max(enemy.slowUntil, until);

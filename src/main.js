@@ -14,7 +14,6 @@ import { initBuildMenu, showTowerPanel } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
-import { applyEffect } from './systems/effects.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
 import { computeDamage } from './systems/combat.js';
 
