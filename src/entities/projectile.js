@@ -49,3 +49,9 @@ export function updateProjectile(p, enemies, dt, now) {
   p.y += (target.y - p.y) / d * move;
   return null;
 }
+
+// 變形判定：首領免疫；rand() < chance 則變形(即死)
+export function rollPolymorph(target, chance, rand) {
+  if (target.boss) return false;
+  return rand() < chance;
+}
