@@ -85,8 +85,10 @@ export function towerLockReason(type, towers, gachaUnlocked) {
 export function updateTower(t, enemies, projectiles, dt) {
   t.cooldown -= dt;
   if (t.cooldown > 0) return;
+  if (t.feared && Math.random() < 0.35) { t.cooldown = 0.2; return; } // 恐懼:機率不發
   const target = selectTarget(t, enemies);
   if (!target) return;
   projectiles.push(spawnProjectile(t, target));
-  t.cooldown = 1 / (t.fireRate * (t.buffRate || 1));
+  const rate = t.fireRate * (t.buffRate || 1) * (t.debuffRate || 1);
+  t.cooldown = 1 / rate;
 }
