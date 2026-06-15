@@ -39,3 +39,8 @@ test('第5波首領為死亡騎士', () => {
   const wave = buildWave(5);
   assert.ok(wave.some(e => e.type === 'deathknight' && e.boss));
 });
+test('hpMult 縮放怪血', () => {
+  const base = buildWave(3)[0].hp;
+  const hard = buildWave(3, 2)[0].hp;
+  assert.equal(hard, base * 2);
+});
