@@ -116,16 +116,16 @@
   .branch-row{ display:flex; gap:6px; } .branch-row button{ flex:1; font-size:12px; }
 
   /* ── 覆蓋層 + 面板（通用鎏金法卷風） ── */
-  #overlay,#dexoverlay,#gachaoverlay,#lboverlay,#shopoverlay,#loadoutoverlay,#leveloverlay{
+  #overlay,#dexoverlay,#gachaoverlay,#lboverlay,#shopoverlay,#loadoutoverlay,#leveloverlay,#guideoverlay{
     position:absolute; inset:0; display:none; align-items:center; justify-content:center; z-index:6;
     background:rgba(9,7,14,.74); backdrop-filter:blur(3px); overflow:auto; }
-  .panel,.lobby-panel,.dex-panel,.gacha-panel,.lb-panel,.shop-panel,.lo-panel,.lvl-panel{
+  .panel,.lobby-panel,.dex-panel,.gacha-panel,.lb-panel,.shop-panel,.lo-panel,.lvl-panel,.guide-panel{
     background:linear-gradient(180deg, rgba(40,33,58,.97), rgba(26,21,40,.98));
     border:1px solid var(--edge); border-radius:18px; position:relative;
     box-shadow:0 26px 64px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14), var(--glow);
     animation:rise .42s cubic-bezier(.2,.8,.2,1) both; }
   @keyframes rise{ from{opacity:0; transform:translateY(16px) scale(.985);} to{opacity:1; transform:none;} }
-  .panel h1,.lobby-panel h1,.dex-panel h2,.gacha-panel h2,.lb-panel h2,.shop-panel h2,.lo-panel h2,.lvl-panel h2,.panel h1{
+  .panel h1,.lobby-panel h1,.dex-panel h2,.gacha-panel h2,.lb-panel h2,.shop-panel h2,.lo-panel h2,.lvl-panel h2,.guide-panel h2,.panel h1{
     font-family:var(--display); color:var(--gold-b); letter-spacing:.05em; margin:0 0 12px;
     text-shadow:0 0 22px rgba(232,200,122,.32); }
 
@@ -172,12 +172,13 @@
   .menu-secondary button{ font-size:12px; padding:6px 13px; opacity:.92; }
 
   /* 籌碼/分頁按鈕 */
-  #mapbar button,#modebar button,#gachabtn button,#dexbtn button,#lbbtn button,#shopbtn button,#loadoutbtn button{
+  #mapbar button,#modebar button,#gachabtn button,#dexbtn button,#lbbtn button,#shopbtn button,#loadoutbtn button,#guidebtn button{
     margin-left:8px; font-family:var(--body); font-size:13px; padding:6px 13px; cursor:pointer; transition:.16s;
     background:rgba(255,255,255,.04); color:var(--ink); border:1px solid var(--edge-soft); border-radius:10px; }
+  #guidebtn button{ color:var(--gold-b); }
   #mapbar button:first-child,#modebar button:first-child{ margin-left:0; }
   #mapbar button:hover,#modebar button:hover,#gachabtn button:hover,#dexbtn button:hover,
-  #lbbtn button:hover,#shopbtn button:hover,#loadoutbtn button:hover{ border-color:var(--edge); transform:translateY(-1px); }
+  #lbbtn button:hover,#shopbtn button:hover,#loadoutbtn button:hover,#guidebtn button:hover{ border-color:var(--edge); transform:translateY(-1px); }
   #mapbar button.active,#modebar button.active{ border-color:var(--gold); color:var(--gold-b); box-shadow:var(--glow); }
   #gachabtn button{ color:var(--gold-b); border-color:var(--edge); }
   #dexbtn button{ color:var(--sky); } #lbbtn button{ color:var(--gold); }
@@ -219,6 +220,22 @@
   .lb-rank{ width:38px; color:var(--gold); font-family:var(--display); }
   .lb-name{ flex:1; } .lb-sub{ color:var(--gold); font-family:var(--display); margin:16px 0 6px; letter-spacing:.04em; }
   .lb-note{ color:var(--dim); font-size:11px; text-align:center; margin-top:12px; }
+
+  /* 攻略面板：故事/玩法/相剋表 */
+  .guide-panel{ padding:24px 28px; max-width:560px; max-height:90%; overflow:auto; text-align:left; }
+  .guide-panel h2{ text-align:center; }
+  .guide-sec{ margin:6px 0 18px; }
+  .guide-sec h3{ font-family:var(--display); color:var(--jade); font-size:16px; margin:0 0 8px;
+    padding-bottom:6px; border-bottom:1px solid var(--edge-soft); letter-spacing:.04em; }
+  .guide-sec p{ line-height:1.85; margin:.5em 0; color:var(--ink); }
+  .guide-sec b{ color:var(--gold-b); }
+  table.affinity{ width:100%; border-collapse:collapse; margin:4px 0; }
+  table.affinity th,table.affinity td{ border:1px solid var(--edge-soft); padding:8px 6px;
+    text-align:center; font-size:13px; }
+  table.affinity th{ color:var(--ink); background:rgba(255,255,255,.03); font-weight:700; }
+  .armor-legend{ display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin-top:12px;
+    font-size:12px; line-height:1.5; color:var(--ink); }
+  @media (max-width:760px){ .armor-legend{ grid-template-columns:1fr; } table.affinity th,table.affinity td{ padding:6px 3px; font-size:12px; } }
 
   /* 關閉鈕 */
   .ov-close,.dex-close,.gacha-close,.lb-close{ display:block; margin:16px auto 0; background:none; border:none;
@@ -279,6 +296,7 @@
     <div id="shopoverlay"></div>
     <div id="loadoutoverlay"></div>
     <div id="leveloverlay"></div>
+    <div id="guideoverlay"></div>
     <div id="fadeveil"></div>
     <div id="lobby">
       <div class="lobby-panel">
@@ -290,7 +308,7 @@
         <button id="enterRun"><svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:none;fill:currentColor"><path d="M8 5.4v13.2l11-6.6z"/></svg> 進入副本</button>
         <div class="lobby-menu">
           <div class="menu-primary"><span id="loadoutbtn"></span><span id="shopbtn"></span></div>
-          <div class="menu-secondary"><span id="dexbtn"></span><span id="lbbtn"></span><span id="gachabtn"></span></div>
+          <div class="menu-secondary"><span id="guidebtn"></span><span id="dexbtn"></span><span id="lbbtn"></span><span id="gachabtn"></span></div>
         </div>
       </div>
     </div>

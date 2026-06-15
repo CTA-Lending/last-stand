@@ -35,6 +35,7 @@ import { openLoadout } from './ui/loadout.js';
 import { campaignWave } from './systems/campaign.js';
 import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
 import { openLevelSelect } from './ui/levelSelect.js';
+import { openGuide } from './ui/guide.js';
 import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
@@ -82,6 +83,16 @@ function initDexButton() {
   const b = document.createElement('button');
   b.innerHTML = btnLabel('book', '圖鑑');
   b.onclick = () => openCollection(gachaUnlocked);
+  bar.appendChild(b);
+}
+
+function initGuideButton() {
+  const bar = document.getElementById('guidebtn');
+  if (!bar) return;
+  bar.innerHTML = '';
+  const b = document.createElement('button');
+  b.innerHTML = btnLabel('info', '攻略');
+  b.onclick = () => openGuide();
   bar.appendChild(b);
 }
 
@@ -560,7 +571,7 @@ function isInRun() {
 
 function boot() {
   loop = createLoop({ update, render: draw });
-  initGachaButton(); initDexButton(); initLbButton(); initShopButtons();
+  initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton();
   document.getElementById('enterRun').onclick = () => { unlockAudio(); startRun(); };
   document.getElementById('hintbtn').onclick = showHint;
 
