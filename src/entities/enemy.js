@@ -12,7 +12,7 @@ export function spawnEnemy(spec, map) {
     speed: spec.speed, bounty: spec.bounty, boss: spec.boss,
     radius: def.radius, color: def.color,
     alive: true, reachedEnd: false,
-    slowUntil: 0, slowFactor: 1, dots: [], hitFlash: 0,
+    slowUntil: 0, slowFactor: 1, dots: [], hitFlash: 0, // slowUntil/slowFactor/dots reserved for Phase 2 — no tower applies them yet
   };
 }
 

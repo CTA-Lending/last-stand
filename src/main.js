@@ -57,7 +57,7 @@ function update(dt) {
     updateEnemy(e, s.map, dt, s.now);
     if (wasAlive && !e.alive) {
       if (e.reachedEnd) { s.economy.loseLife(1); }
-      else { s.economy.earn(e.bounty); s.economy.addScore(e.boss ? 100 : 10); burst(e.x, e.y, e.color, 12); }
+      else { s.economy.earn(e.bounty); s.economy.addScore(e.boss ? 100 : 10); burst(e.x, e.y, e.color, e.boss ? 28 : 12); }
     }
   }
   s.enemies = s.enemies.filter(e => e.alive || e.hitFlash > 0);

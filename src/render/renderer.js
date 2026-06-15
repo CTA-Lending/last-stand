@@ -36,6 +36,10 @@ function drawTower(ctx, t) {
 }
 
 function drawEnemy(ctx, e) {
+  if (e.boss) {
+    ctx.strokeStyle = '#ffd35a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 6, 0, Math.PI * 2); ctx.stroke();
+  }
   ctx.fillStyle = e.hitFlash > 0 ? '#fff' : e.color;
   ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.fill();
   if (e.armorType === 'flying') {
