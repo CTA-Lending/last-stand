@@ -46,8 +46,11 @@ export function showTowerPanel(state) {
   }
   panel.style.display = 'block';
   const lvLabel = t.branch != null ? def.branches[t.branch].name : 'Lv.' + (t.level + 1);
+  const statLine = t.kind === 'barracks'
+    ? `<div>士兵 ${t.maxSoldiers}名 · 血${t.soldierHp} 攻${t.soldierDmg}</div>`
+    : `<div>傷害 ${t.damage} · 射程 ${t.range}</div>`;
   panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
-    <div>傷害 ${t.damage} · 射程 ${t.range}</div>
+    ${statLine}
     ${actions}
     <button id="sell">賣出 (+${sell}g)</button>`;
   const upg = document.getElementById('upg');
