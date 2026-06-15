@@ -1,7 +1,13 @@
 import { TOWERS } from '../data/towers.js';
 import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue, isTowerUnlocked, towerLockReason } from '../entities/tower.js';
 import { releaseBarracks } from '../systems/blocking.js';
+import { pathSlots } from '../systems/grid.js';
 import { BALANCE } from '../data/balance.js';
+
+// 地雷塔升級/分支改變 range 後，重算佈雷點(否則 range 升級是死數值)
+function refreshMineSlots(t, state) {
+  if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, state.map.path, 26);
+}
 
 export function initBuildMenu(state) {
   const bar = document.getElementById('buildbar');
@@ -75,12 +81,12 @@ export function showTowerPanel(state) {
     ${actions}
     <button id="sell">賣出 (+${sell}g)</button>`;
   const upg = document.getElementById('upg');
-  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); showTowerPanel(state); } };
+  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); refreshMineSlots(t, state); showTowerPanel(state); } };
   for (const i of [0, 1]) {
     const bb = document.getElementById('br' + i);
     if (bb) bb.onclick = () => {
       const cost = branchOptions(t)[i].cost;
-      if (state.economy.spend(cost)) { chooseBranch(t, i); showTowerPanel(state); }
+      if (state.economy.spend(cost)) { chooseBranch(t, i); refreshMineSlots(t, state); showTowerPanel(state); }
     };
   }
   document.getElementById('sell').onclick = () => {
