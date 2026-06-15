@@ -64,6 +64,24 @@ export const TOWERS = {
       { name: '破甲月刃', cost: 150, damage: 82, range: 145, fireRate: 1.5, chain: { count: 2, radius: 75, falloff: 0.6 } },
     ],
   },
+  human_ballista: {
+    name: '人類十字弩', faction: 'human', attackType: 'physical', canHitAir: true, requires: ['human_barracks'],
+    color: '#cdb27a', splash: 0, pierce: 3,
+    levels: [ { cost: 110, damage: 24, range: 150, fireRate: 1.0 }, { cost: 100, damage: 42, range: 165, fireRate: 1.1 } ],
+    branches: [
+      { name: '貫穿弩', cost: 150, damage: 62, range: 185, fireRate: 1.2, pierce: 6 },
+      { name: '重弩', cost: 150, damage: 115, range: 170, fireRate: 0.8, pierce: 3 },
+    ],
+  },
+  mage_polymorph: {
+    name: '魔法師變形術', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'],
+    color: '#e58ad8', splash: 0, polymorph: { chance: 0.12 },
+    levels: [ { cost: 140, damage: 14, range: 120, fireRate: 0.9 }, { cost: 130, damage: 22, range: 130, fireRate: 1.0 } ],
+    branches: [
+      { name: '群體變形', cost: 180, damage: 30, range: 145, fireRate: 1.1, polymorph: { chance: 0.20 } },
+      { name: '死亡變形', cost: 180, damage: 42, range: 135, fireRate: 1.0, polymorph: { chance: 0.32 } },
+    ],
+  },
   human_barracks: {
     name: '人類騎士兵營', faction: 'human', kind: 'barracks', canHitAir: false,
     color: '#c9c2a8',
