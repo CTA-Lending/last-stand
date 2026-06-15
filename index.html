@@ -58,6 +58,18 @@
                 border-radius:8px; background:#7f77dd; color:#fff; }
   .gacha-roll:disabled { opacity:.5; cursor:default; }
   .gacha-close { display:block; margin:14px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
+  #lbbtn button { margin-left:8px; font-size:13px; padding:3px 10px; cursor:pointer;
+                  background:#2b3346; color:#ffd973; border:1px solid #3d4760; border-radius:6px; }
+  #lboverlay { position:absolute; inset:0; background:rgba(0,0,0,.82); display:none;
+               align-items:center; justify-content:center; }
+  .lb-panel { background:#1f2632; padding:22px 26px; border-radius:14px; min-width:380px; max-height:90%; overflow:auto; }
+  .lb-row { display:flex; justify-content:space-between; padding:7px 10px; border-radius:6px; font-size:14px; }
+  .lb-row.you { background:#3a3320; color:#ffe08a; font-weight:bold; }
+  .lb-rank { width:36px; color:#9fb0c0; }
+  .lb-name { flex:1; }
+  .lb-sub { color:#9fb0c0; font-size:12px; margin:14px 0 6px; }
+  .lb-close { display:block; margin:16px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
+  .lb-note { color:#6f7d8c; font-size:11px; text-align:center; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -72,6 +84,7 @@
     <span id="modebar"></span>
     <span id="gachabtn"></span>
     <span id="dexbtn"></span>
+    <span id="lbbtn"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
@@ -79,6 +92,7 @@
     <div id="overlay"></div>
     <div id="gachaoverlay"></div>
     <div id="dexoverlay"></div>
+    <div id="lboverlay"></div>
   </div>
   <div id="buildbar"></div>
   <div id="spellbar"></div>

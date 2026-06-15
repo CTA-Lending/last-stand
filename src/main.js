@@ -24,6 +24,9 @@ import { computeDamage } from './systems/combat.js';
 import { isNewDay } from './systems/gacha.js';
 import { openGacha } from './ui/gacha.js';
 import { openCollection } from './ui/collection.js';
+import { createLocalLeaderboard } from './systems/leaderboard.js';
+import { LEADERBOARD_SEED } from './data/leaderboardSeed.js';
+import { openLeaderboard } from './ui/leaderboard.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
@@ -44,6 +47,7 @@ function campaignKey(s) {
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const save = createSaveService();
+const leaderboard = createLocalLeaderboard(save, LEADERBOARD_SEED);
 const mouse = { x: 0, y: 0 };
 let state, loop;
 
@@ -58,6 +62,15 @@ function initDexButton() {
   const b = document.createElement('button');
   b.textContent = '🎴 圖鑑';
   b.onclick = () => openCollection(gachaUnlocked);
+  bar.appendChild(b);
+}
+
+function initLbButton() {
+  const bar = document.getElementById('lbbtn');
+  bar.innerHTML = '';
+  const b = document.createElement('button');
+  b.textContent = '🏆 排行';
+  b.onclick = () => openLeaderboard(leaderboard, save, MAPS.map(m => m.name));
   bar.appendChild(b);
 }
 
@@ -277,6 +290,7 @@ function boot() {
   initModePicker();
   initGachaButton();
   initDexButton();
+  initLbButton();
   loop.start();
 }
 boot();
