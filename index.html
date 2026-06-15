@@ -49,7 +49,8 @@
   .build-btn.locked{ opacity:.4; cursor:not-allowed; filter:grayscale(.4); }
   .build-btn.locked:hover{ transform:none; box-shadow:0 4px 12px rgba(0,0,0,.3); }
   .build-btn.locked .req{ color:var(--rose); }
-  .build-btn.cantafford{ opacity:.5; }
+  .build-btn.cantafford{ opacity:.5; cursor:not-allowed; }
+  .build-btn.cantafford:hover{ transform:none; }
   .build-btn.cantafford .req{ color:var(--rose); }
   .req{ color:var(--dim); }
 
@@ -72,6 +73,10 @@
     background:rgba(34,27,51,.85); border:1px solid var(--edge-soft); border-radius:10px;
     cursor:pointer; z-index:2; position:relative; }
   #hint b{ color:var(--gold-b); }
+  #hintbtn{ display:none; width:26px; height:26px; padding:0; border-radius:50%; cursor:pointer;
+    background:rgba(255,255,255,.05); color:var(--dim); border:1px solid var(--edge-soft);
+    font-family:var(--display); font-size:14px; line-height:1; transition:.15s; vertical-align:middle; }
+  #hintbtn:hover{ border-color:var(--edge); color:var(--gold-b); background:rgba(232,200,122,.1); }
 
   #spellbar{ display:flex; gap:10px; padding:0 10px 16px; justify-content:center; z-index:1; }
   .spell-btn{ background:linear-gradient(180deg,#3a2b4a,#281f38); color:var(--ink);
@@ -195,6 +200,7 @@
     <span>⭐<b id="hud-score">0</b></span>
     <span>⏱️<b id="hud-time">0s</b></span>
     <span id="hud-next" style="font-weight:bold;"></span>
+    <button id="hintbtn" title="教學提示">?</button>
     <span id="hud-controls"></span>
   </div>
   <div id="stage">

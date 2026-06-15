@@ -11,17 +11,20 @@ function drawOnePath(ctx, path) {
   ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
   ctx.strokeStyle = 'rgba(180,170,205,0.30)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
   ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(180,170,205,0.12)'; ctx.lineWidth = 4;
+  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
 }
 
-function drawTerrain(ctx, map) {
+function drawTerrain(ctx, map, now = 0) {
   const grad = ctx.createLinearGradient(0, 0, 0, map.height);
   grad.addColorStop(0, '#1f2735');
   grad.addColorStop(1, '#141a26');
   ctx.fillStyle = grad; ctx.fillRect(0, 0, map.width, map.height);
-  // 玉光游塵（靜態散點，用座標決定不閃動）
-  ctx.fillStyle = 'rgba(95,211,178,0.09)';
+  // 玉光游塵（散點呼吸明滅）
   for (let gx = 16; gx < map.width; gx += 46) for (let gy = 22; gy < map.height; gy += 46) {
     const ox = (gx * 13 % 17) - 8, oy = (gy * 7 % 19) - 9;
+    const a = Math.max(0, 0.06 + 0.04 * Math.sin(now * 0.5 + gx * 0.1 + gy * 0.07));
+    ctx.fillStyle = 'rgba(95,211,178,' + a + ')';
     ctx.beginPath(); ctx.arc(gx + ox, gy + oy, 2.5, 0, Math.PI * 2); ctx.fill();
   }
   for (const path of map.paths) drawOnePath(ctx, path);
@@ -93,6 +96,8 @@ function drawTower(ctx, t) {
       ctx.fillStyle = lighten(c, 80); ctx.beginPath(); ctx.arc(-2, -2, 2.6, 0, Math.PI * 2); ctx.fill();
     } else {
       ctx.rotate(a);
+      const recoil = t.recoil > 0 ? t.recoil : 0;
+      if (recoil > 0) ctx.translate(-recoil * 3, 0);
       if (fac === 'dwarf') {
         ctx.fillStyle = '#33302a'; ctx.fillRect(2, -4.5, 16, 9);
         ctx.fillStyle = '#16140f'; ctx.beginPath(); ctx.arc(18, 0, 4, -Math.PI / 2, Math.PI / 2); ctx.fill();
@@ -100,13 +105,13 @@ function drawTower(ctx, t) {
       } else if (fac === 'elf') {
         ctx.strokeStyle = c; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.arc(1, 0, 11, -2.0, 2.0); ctx.stroke();
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(231,221,201,0.45)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(1 + Math.cos(-2.0) * 11, Math.sin(-2.0) * 11); ctx.lineTo(1 + Math.cos(2.0) * 11, Math.sin(2.0) * 11); ctx.stroke();
         ctx.strokeStyle = '#e8e0c0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(15, 0); ctx.stroke();
       } else if (fac === 'human') {
         ctx.fillStyle = '#5a4a32'; ctx.fillRect(-2, -2, 18, 4);
         ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(6, 9); ctx.stroke();
-        ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(16, 0); ctx.lineTo(6, 9); ctx.stroke();
+        ctx.strokeStyle = 'rgba(231,221,201,0.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(16, 0); ctx.lineTo(6, 9); ctx.stroke();
       } else if (fac === 'dragon') {
         ctx.fillStyle = rgba('#ffcc55', 0.55); ctx.beginPath(); ctx.arc(17, 0, 5, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(2, -6); ctx.lineTo(17, 0); ctx.lineTo(2, 6); ctx.closePath(); ctx.fill();
@@ -152,7 +157,8 @@ function drawEnemy(ctx, e, now) {
     return;
   }
   const bob = Math.sin((now || 0) * 6 + e.id) * 1.5;
-  const y = e.y + bob, r = e.radius;
+  const spawnScale = e.spawnT > 0 ? (1 - e.spawnT / 0.12 * 0.6) : 1;
+  const y = e.y + bob, r = e.radius * spawnScale;
   // 陰影
   ctx.fillStyle = 'rgba(0,0,0,0.16)';
   ctx.beginPath(); ctx.ellipse(e.x, e.y + r * 0.7, r * 0.9, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
@@ -171,9 +177,10 @@ function drawEnemy(ctx, e, now) {
     ctx.beginPath(); ctx.moveTo(e.x + r * 0.55, y - r * 0.55); ctx.lineTo(e.x + r * 0.95, y - r * 1.3); ctx.lineTo(e.x + r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
   }
   // 身體
-  ctx.fillStyle = e.hitFlash > 0 ? '#fff' : e.color;
+  const flashAmt = e.hitFlash > 0 ? Math.min(80, e.hitFlash / 0.12 * 80) : 0;
+  ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : e.color;
   ctx.beginPath(); ctx.arc(e.x, y, r, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = e.hitFlash > 0 ? '#fff' : lighten(e.color, 40);
+  ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : lighten(e.color, 40);
   ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
   // 重甲護板
   if (e.armorType === 'heavy') { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
@@ -181,8 +188,10 @@ function drawEnemy(ctx, e, now) {
   const ex = r * 0.34, ey = -r * 0.06;
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.fill();
+  if (e.boss) { ctx.shadowColor = '#ff5a4a'; ctx.shadowBlur = 6; }
   ctx.fillStyle = e.boss ? '#ff5a4a' : '#1a1320';
   ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.11, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.11, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
   // 凶惡眉毛
   ctx.strokeStyle = '#1a1320'; ctx.lineWidth = Math.max(1.4, r * 0.13); ctx.lineCap = 'round';
   ctx.beginPath();
@@ -196,7 +205,7 @@ function drawEnemy(ctx, e, now) {
   }
   // 飛行翼影
   if (e.armorType === 'flying') {
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(231,221,201,0.45)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(e.x, y, r + 4, 0, Math.PI * 2); ctx.stroke();
   }
   // 減速/凍結圈、毒點
@@ -256,14 +265,16 @@ function drawRangePreview(ctx, state, mouse) {
   if (!r) return; // barracks has no range ring
   const { col, row } = cellOf(mouse.x, mouse.y, state.map.tile);
   const c = cellCenter(col, row, state.map.tile);
-  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
+  ctx.fillStyle = 'rgba(95,211,178,0.06)';
+  ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(232,200,122,0.6)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2); ctx.stroke();
 }
 
 export function render(ctx, state, mouse) {
   ctx.save();
   if (state.shake > 0.3) ctx.translate((Math.random() * 2 - 1) * state.shake, (Math.random() * 2 - 1) * state.shake);
-  drawTerrain(ctx, state.map);
+  drawTerrain(ctx, state.map, state.now);
   drawBuildGrid(ctx, state, mouse);
   for (const t of state.towers) drawTower(ctx, t);
   drawMinesAndAuras(ctx, state.towers);

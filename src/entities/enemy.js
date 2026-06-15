@@ -16,6 +16,7 @@ export function spawnEnemy(spec, map, pathIndex = 0) {
     slowUntil: 0, slowFactor: 1, dots: [], hitFlash: 0,
     blockedBy: null, atkCd: 0, dmg: def.dmg, atk: def.atk,
     ability: def.ability || null, abilityCd: def.ability ? (def.ability.interval || 0) : 0,
+    spawnT: 0.12,
   };
 }
 

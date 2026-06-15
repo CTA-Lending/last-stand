@@ -1,4 +1,4 @@
-import { sfx, unlockAudio } from './render/audio.js';
+import { sfx, unlockAudio, startAmbient, stopAmbient } from './render/audio.js';
 import { MAP1 } from './data/map1.js';
 import { MAP2 } from './data/map2.js';
 import { BALANCE } from './data/balance.js';
@@ -171,13 +171,16 @@ function update(dt) {
       }
     },
   }, dt);
+  const prevProjLen = s.projectiles.length;
   for (const t of s.towers) {
     if (t.kind === 'barracks') updateBlocking(t, s.enemies, dt, s.now);
     else if (t.kind === 'banner') { /* 不開火，光環已套 */ }
     else if (t.kind === 'mine') { for (const d of updateMines(t, s.enemies, dt)) burst(d.x, d.y, '#ffb13a', 18); }
     else updateTower(t, s.enemies, s.projectiles, dt);
   }
-  const prevProjLen = s.projectiles.length;
+  if (s.projectiles.length > prevProjLen) sfx.fire();
+  for (let k = prevProjLen; k < s.projectiles.length; k++) flash(s.projectiles[k].x, s.projectiles[k].y, s.projectiles[k].color, 7);
+  for (const t of s.towers) if (t.recoil > 0) t.recoil -= dt * 6;
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
     const hit = updateProjectile(p, s.enemies, dt, s.now);
@@ -190,10 +193,10 @@ function update(dt) {
       burst(hit.x, hit.y, p.color, 7);
       floatText(hit.x, hit.y - 6, '' + Math.round(p.damage), p.color, Math.min(22, 12 + p.damage * 0.06));
       flash(hit.x, hit.y, p.color, 16);
+      if (p.damage > 80) s.hitStop = Math.max(s.hitStop, 0.02);
     }
     if (!p.alive) s.projectiles.splice(i, 1);
   }
-  if (s.projectiles.length > prevProjLen) sfx.fire();
   for (const e of s.enemies) {
     const wasAlive = e.alive;
     updateEnemy(e, s.map, dt, s.now);
@@ -219,6 +222,7 @@ function update(dt) {
     }
   }
   for (const e of s.enemies) if (!e.alive && e.deathT > 0) e.deathT -= dt;
+  for (const e of s.enemies) if (e.alive && e.spawnT > 0) e.spawnT -= dt;
   s.enemies = s.enemies.filter(e => e.alive || e.hitFlash > 0 || e.deathT > 0);
   updateParticles(dt);
 
@@ -324,6 +328,7 @@ canvas.addEventListener('click', () => {
     const key = cellKey(col, row);
     if (s.buildableCells.has(key) && !s.occupiedCells.has(key)) {
       const cost = TOWERS[s.selectedTowerType].levels[0].cost;
+      if (s.economy.gold < cost) { floatText(mouse.x, mouse.y, '金幣不足', '#e0668a', 14); return; }
       if (s.economy.spend(cost)) {
         const c = cellCenter(col, row, s.map.tile);
         const t = buildTower(s.selectedTowerType, { x: c.x, y: c.y });
@@ -391,9 +396,19 @@ function showInGameUI(show) {
   document.getElementById('buildbar').style.display = show ? 'flex' : 'none';
   document.getElementById('spellbar').style.display = show ? 'flex' : 'none';
   document.getElementById('hud-controls').style.display = show ? 'inline-flex' : 'none';
+  document.getElementById('hintbtn').style.display = show ? 'inline-block' : 'none';
+}
+
+const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用💰<b>金幣</b>升級　③ 撐過所有波次　<small>（點擊關閉）</small>';
+function showHint() {
+  const hint = document.getElementById('hint');
+  if (!hint.innerHTML.trim()) hint.innerHTML = HINT_HTML;
+  hint.style.display = 'block';
+  hint.onclick = () => { hint.style.display = 'none'; };
 }
 
 let _paused = false;
+let _togglePause = null;
 
 function initRunControls() {
   _paused = false;
@@ -416,7 +431,7 @@ function initRunControls() {
   const pauseBtn = document.createElement('button');
   pauseBtn.textContent = '⏸ 暫停';
   pauseBtn.title = '暫停 / 繼續遊戲';
-  pauseBtn.onclick = () => {
+  const togglePause = () => {
     if (!loop) return;
     if (_paused) {
       _paused = false;
@@ -432,6 +447,8 @@ function initRunControls() {
       loop.stop();
     }
   };
+  pauseBtn.onclick = togglePause;
+  _togglePause = togglePause;
 
   // 🏳 投降 (二次確認)
   const forfeitBtn = document.createElement('button');
@@ -467,6 +484,7 @@ function initRunControls() {
 
 function enterLobby() {
   _paused = false;
+  stopAmbient();
   if (loop) loop.stop();
   document.getElementById('pause-overlay').style.display = 'none';
   document.getElementById('lobby').style.display = 'flex';
@@ -478,6 +496,7 @@ function enterLobby() {
 
 function startRun() {
   unlockAudio();
+  startAmbient();
   _paused = false;
   document.getElementById('pause-overlay').style.display = 'none';
   document.getElementById('lobby').style.display = 'none';
@@ -499,10 +518,8 @@ function startRun() {
   if (!profile.seenTutorial) {
     profile.seenTutorial = true;
     save.saveProfile(profile);
-    const hint = document.getElementById('hint');
-    hint.style.display = 'block';
-    hint.onclick = () => { hint.style.display = 'none'; };
-    setTimeout(() => { hint.style.display = 'none'; }, 8000);
+    showHint();
+    setTimeout(() => { document.getElementById('hint').style.display = 'none'; }, 8000);
   }
 }
 
@@ -510,10 +527,38 @@ function restart() {
   startRun();
 }
 
+function isInRun() {
+  return state && document.getElementById('lobby').style.display === 'none';
+}
+
 function boot() {
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons();
   document.getElementById('enterRun').onclick = () => { unlockAudio(); startRun(); };
+  document.getElementById('hintbtn').onclick = showHint;
+
+  window.addEventListener('keydown', e => {
+    if (!isInRun()) return;
+    const s = state;
+    if (e.key >= '1' && e.key <= '9') {
+      const idx = Number(e.key) - 1;
+      if (s.loadout && s.loadout[idx]) {
+        s.selectedTowerType = s.loadout[idx];
+        s.selectedTower = null;
+        refreshBuildButtons(s);
+      }
+    } else if (e.key === 'Escape') {
+      s.selectedTowerType = null;
+      s.castMode = null;
+      s.selectedTower = null;
+      refreshBuildButtons(s);
+      showTowerPanel(s);
+    } else if (e.key === ' ') {
+      e.preventDefault();
+      if (_togglePause) _togglePause();
+    }
+  });
+
   enterLobby();
 }
 boot();

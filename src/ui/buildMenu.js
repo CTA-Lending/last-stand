@@ -105,9 +105,16 @@ export function showTowerPanel(state) {
   }
   document.getElementById('sell').onclick = () => {
     if (sellArmed !== towerKey) {
-      // 第一下：武裝確認
+      // 第一下：武裝確認（3 秒後自動解除）
       sellArmed = towerKey;
       showTowerPanel(state);
+      setTimeout(() => {
+        if (sellArmed === towerKey) {
+          sellArmed = null;
+          const p = document.getElementById('towerpanel');
+          if (p.style.display !== 'none' && state.selectedTower === t) showTowerPanel(state);
+        }
+      }, 3000);
       return;
     }
     // 第二下：真正賣出

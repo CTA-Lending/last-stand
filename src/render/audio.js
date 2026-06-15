@@ -18,6 +18,41 @@ function blip(freq, dur, type, gain, slideTo) {
 
 let lastFire = 0;
 
+let ambientNodes = null;
+
+export function startAmbient() {
+  if (!actx || ambientNodes) return;
+  try {
+    const t = actx.currentTime;
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, t);
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(0.012, t);
+    filter.connect(gain); gain.connect(actx.destination);
+    const oscs = [];
+    [[55, 'sine'], [82, 'triangle'], [110, 'sine']].forEach(([freq, type]) => {
+      const o = actx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(freq * (0.99 + Math.random() * 0.02), t);
+      o.detune.setValueAtTime((Math.random() * 2 - 1) * 8, t);
+      o.connect(filter); o.start(t);
+      oscs.push(o);
+    });
+    ambientNodes = { oscs, filter, gain };
+  } catch { ambientNodes = null; }
+}
+
+export function stopAmbient() {
+  if (!ambientNodes) return;
+  try {
+    for (const o of ambientNodes.oscs) { try { o.stop(); } catch {} try { o.disconnect(); } catch {} }
+    try { ambientNodes.filter.disconnect(); } catch {}
+    try { ambientNodes.gain.disconnect(); } catch {}
+  } catch {}
+  ambientNodes = null;
+}
+
 export const sfx = {
   fire() {
     const n = (actx ? actx.currentTime : 0);
@@ -25,8 +60,8 @@ export const sfx = {
     lastFire = n;
     blip(420 * (0.9 + Math.random() * 0.2), 0.05, 'square', 0.018);
   },
-  hit()      { blip(190, 0.05, 'triangle', 0.03); },
-  kill()     { blip(340, 0.14, 'sawtooth', 0.045, 120); },
+  hit()      { blip(190 * (0.9 + Math.random() * 0.2), 0.05, 'triangle', 0.03); },
+  kill()     { blip(340 * (0.9 + Math.random() * 0.2), 0.14, 'sawtooth', 0.045, 120); },
   boss()     { blip(80, 0.5, 'sine', 0.12, 40); blip(120, 0.3, 'square', 0.05, 60); },
   firerain() { blip(300, 0.4, 'sawtooth', 0.08, 90); },
   frost()    { blip(900, 0.4, 'sine', 0.06, 300); },

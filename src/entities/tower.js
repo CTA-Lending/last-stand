@@ -89,6 +89,7 @@ export function updateTower(t, enemies, projectiles, dt) {
   const target = selectTarget(t, enemies);
   if (!target) return;
   t.aimAngle = Math.atan2(target.y - t.y, target.x - t.x);
+  t.recoil = 1;
   projectiles.push(spawnProjectile(t, target));
   const rate = t.fireRate * (t.buffRate || 1) * (t.debuffRate || 1);
   t.cooldown = 1 / rate;
