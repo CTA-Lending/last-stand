@@ -1,6 +1,7 @@
 import { dist } from '../core/geometry.js';
 import { computeDamage } from '../systems/combat.js';
 import { applyEffect } from '../systems/effects.js';
+import { chainTargets } from '../systems/chain.js';
 
 let nextId = 1;
 
@@ -9,7 +10,7 @@ export function spawnProjectile(tower, target) {
     id: nextId++, x: tower.x, y: tower.y, targetId: target.id,
     speed: 420, damage: tower.damage, attackType: tower.attackType,
     splash: tower.splash, effect: tower.effect || null,
-    color: tower.color, alive: true,
+    color: tower.color, alive: true, chain: tower.chain || null,
   };
 }
 
@@ -21,6 +22,19 @@ export function updateProjectile(p, enemies, dt, now) {
   const move = p.speed * dt;
   if (d <= move) {
     p.alive = false;
+    if (p.chain) {
+      const seq = chainTargets(target, enemies, p.chain.radius, p.chain.count);
+      let dmg = p.damage;
+      const nodes = [];
+      for (const e of seq) {
+        e.hp -= computeDamage(dmg, p.attackType, e.armorType);
+        if (p.effect) applyEffect(e, p.effect, now);
+        e.hitFlash = 0.12;
+        nodes.push({ x: e.x, y: e.y });
+        dmg *= p.chain.falloff;
+      }
+      return { x: target.x, y: target.y, hits: seq, nodes };
+    }
     const hits = p.splash > 0
       ? enemies.filter(e => e.alive && dist(target.x, target.y, e.x, e.y) <= p.splash)
       : [target];

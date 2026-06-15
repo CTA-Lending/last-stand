@@ -46,6 +46,24 @@ export const TOWERS = {
       { name: '烈焰風暴', cost: 170, damage: 60, range: 175, fireRate: 0.7, splash: 56, effect: { dot: { dps: 30, duration: 3 } } },
     ],
   },
+  mage_chain: {
+    name: '連環閃電', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'],
+    color: '#5bc8ff', splash: 0, chain: { count: 3, radius: 85, falloff: 0.65 },
+    levels: [ { cost: 130, damage: 24, range: 130, fireRate: 1.0 }, { cost: 120, damage: 42, range: 140, fireRate: 1.1 } ],
+    branches: [
+      { name: '雷暴', cost: 170, damage: 70, range: 150, fireRate: 1.2, chain: { count: 5, radius: 95, falloff: 0.7 } },
+      { name: '導電', cost: 170, damage: 92, range: 150, fireRate: 1.1, chain: { count: 3, radius: 85, falloff: 0.8 } },
+    ],
+  },
+  elf_moonblade: {
+    name: '精靈月刃', faction: 'elf', attackType: 'physical', canHitAir: true, requires: ['elf_archer'],
+    color: '#aef0c8', splash: 0, chain: { count: 2, radius: 75, falloff: 0.6 },
+    levels: [ { cost: 110, damage: 20, range: 125, fireRate: 1.3 }, { cost: 100, damage: 34, range: 135, fireRate: 1.5 } ],
+    branches: [
+      { name: '回旋月刃', cost: 150, damage: 54, range: 150, fireRate: 1.6, chain: { count: 4, radius: 85, falloff: 0.65 } },
+      { name: '破甲月刃', cost: 150, damage: 82, range: 145, fireRate: 1.5, chain: { count: 2, radius: 75, falloff: 0.6 } },
+    ],
+  },
   human_barracks: {
     name: '人類騎士兵營', faction: 'human', kind: 'barracks', canHitAir: false,
     color: '#c9c2a8',
