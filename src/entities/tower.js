@@ -11,7 +11,8 @@ function applyStats(t, s) {
   if (s.chain !== undefined) t.chain = s.chain;
   if (s.pierce !== undefined) t.pierce = s.pierce;
   if (s.polymorph !== undefined) t.polymorph = s.polymorph;
-  for (const k of ['soldierHp', 'soldierDmg', 'soldierAtk', 'maxSoldiers', 'engageRange']) {
+  for (const k of ['soldierHp', 'soldierDmg', 'soldierAtk', 'maxSoldiers', 'engageRange',
+                   'buffDamage', 'buffFireRate', 'maxMines', 'mineRate']) {
     if (s[k] !== undefined) t[k] = s[k];
   }
 }
@@ -32,6 +33,8 @@ export function buildTower(type, slot) {
     t.rally = null;       // 由 main 建造後用 nearestPointOnPath 設定
     t.soldiers = [];
   }
+  if (def.kind === 'banner') { t.kind = 'banner'; }
+  if (def.kind === 'mine') { t.kind = 'mine'; t.mines = []; t.mineSlots = []; t.mineCd = 0; }
   return t;
 }
 
@@ -85,5 +88,5 @@ export function updateTower(t, enemies, projectiles, dt) {
   const target = selectTarget(t, enemies);
   if (!target) return;
   projectiles.push(spawnProjectile(t, target));
-  t.cooldown = 1 / t.fireRate;
+  t.cooldown = 1 / (t.fireRate * (t.buffRate || 1));
 }

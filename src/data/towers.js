@@ -94,6 +94,30 @@ export const TOWERS = {
       { name: '聖殿守衛', cost: 150, soldierHp: 130, soldierDmg: 30, soldierAtk: 1.2, maxSoldiers: 2, engageRange: 54 },
     ],
   },
+  human_banner: {
+    name: '人類號令旗', faction: 'human', kind: 'banner', canHitAir: false, requires: ['human_barracks'],
+    color: '#e8d98a',
+    levels: [
+      { cost: 110, range: 110, buffDamage: 1.20, buffFireRate: 1.15 },
+      { cost: 100, range: 125, buffDamage: 1.30, buffFireRate: 1.22 },
+    ],
+    branches: [
+      { name: '戰旗', cost: 150, range: 140, buffDamage: 1.50, buffFireRate: 1.25 },
+      { name: '聖旗', cost: 150, range: 150, buffDamage: 1.30, buffFireRate: 1.50 },
+    ],
+  },
+  dwarf_mine: {
+    name: '矮人地雷', faction: 'dwarf', kind: 'mine', attackType: 'siege', canHitAir: false, requires: ['dwarf_cannon'],
+    color: '#9a7b3a', splash: 50,
+    levels: [
+      { cost: 120, damage: 60, range: 130, splash: 50, maxMines: 3, mineRate: 2.5 },
+      { cost: 110, damage: 100, range: 140, splash: 56, maxMines: 4, mineRate: 2.2 },
+    ],
+    branches: [
+      { name: '集束雷', cost: 160, damage: 130, range: 150, splash: 72, maxMines: 6, mineRate: 1.8 },
+      { name: '高爆雷', cost: 160, damage: 220, range: 145, splash: 60, maxMines: 3, mineRate: 2.0 },
+    ],
+  },
 
   // 🎰 轉蛋專屬傳奇塔（gachaOnly：建造列顯示為「🔒 轉蛋解鎖」，Phase 3 抽到才能用）
   dragon_whelp: {

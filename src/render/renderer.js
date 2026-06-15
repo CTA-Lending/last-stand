@@ -56,6 +56,22 @@ function drawTower(ctx, t) {
       ctx.fillStyle = 'rgba(201,194,168,0.7)';
       ctx.beginPath(); ctx.arc(t.rally.x, t.rally.y, 4, 0, Math.PI * 2); ctx.fill();
     }
+  } else if (t.kind === 'banner') {
+    // 號令旗：底座 + 三角旗
+    ctx.fillStyle = t.color;
+    ctx.fillRect(t.x - 9, t.y - 8, 18, 14);
+    ctx.fillStyle = t.color;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 5, t.y - 9);
+    ctx.lineTo(t.x + 7, t.y - 4);
+    ctx.lineTo(t.x - 5, t.y + 1);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(t.x - 5, t.y - 9);
+    ctx.lineTo(t.x + 7, t.y - 4);
+    ctx.lineTo(t.x - 5, t.y + 1);
+    ctx.closePath(); ctx.stroke();
   } else {
     ctx.fillStyle = t.color;
     ctx.beginPath(); ctx.arc(t.x, t.y, 11, 0, Math.PI * 2); ctx.fill();
@@ -118,6 +134,19 @@ function drawProjectile(ctx, p) {
   ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
 }
 
+function drawMinesAndAuras(ctx, towers) {
+  for (const t of towers) {
+    if (t.kind === 'mine' && t.mines) for (const m of t.mines) {
+      ctx.fillStyle = '#8a6a2a'; ctx.beginPath(); ctx.arc(m.x, m.y, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff5a2a'; ctx.beginPath(); ctx.arc(m.x, m.y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    if (t.kind === 'banner') {
+      ctx.strokeStyle = 'rgba(232,217,138,0.25)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+}
+
 function drawRangePreview(ctx, state, mouse) {
   if (!state.selectedTowerType) return;
   const def = TOWERS[state.selectedTowerType];
@@ -133,6 +162,7 @@ export function render(ctx, state, mouse) {
   drawTerrain(ctx, state.map);
   drawBuildGrid(ctx, state, mouse);
   for (const t of state.towers) drawTower(ctx, t);
+  drawMinesAndAuras(ctx, state.towers);
   drawSoldiers(ctx, state.towers);
   for (const e of state.enemies) if (e.alive) drawEnemy(ctx, e);
   for (const p of state.projectiles) if (p.alive) drawProjectile(ctx, p);

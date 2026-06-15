@@ -8,12 +8,14 @@ import { buildWave } from './systems/endlessDirector.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
 import { buildTower, updateTower, isTowerUnlocked } from './entities/tower.js';
 import { updateBlocking } from './systems/blocking.js';
+import { applyAuras } from './systems/aura.js';
+import { updateMines } from './systems/mines.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver } from './ui/hud.js';
 import { initBuildMenu, showTowerPanel, refreshBuildButtons, refreshBuildLocks } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
-import { cellOf, cellKey, cellCenter, nearestPointOnPath } from './systems/grid.js';
+import { cellOf, cellKey, cellCenter, nearestPointOnPath, pathSlots } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
@@ -51,8 +53,11 @@ function update(dt) {
   }
   if (s.waveTimer <= 0 && s.spawnQueue.length === 0) startWave(s);
 
+  applyAuras(s.towers);
   for (const t of s.towers) {
     if (t.kind === 'barracks') updateBlocking(t, s.enemies, dt, s.now);
+    else if (t.kind === 'banner') { /* 不開火，光環已套 */ }
+    else if (t.kind === 'mine') { for (const d of updateMines(t, s.enemies, dt)) burst(d.x, d.y, '#ffb13a', 18); }
     else updateTower(t, s.enemies, s.projectiles, dt);
   }
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
@@ -155,6 +160,7 @@ canvas.addEventListener('click', () => {
         s.towers.push(t);
         s.occupiedCells.add(key);
         if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.path);
+        if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, s.map.path, 26);
         s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
         refreshBuildButtons(s);
       }

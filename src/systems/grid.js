@@ -54,6 +54,21 @@ export function isBuildable(col, row, map) {
   return pathDistance(c.x, c.y, map.path) > BLOCK_RADIUS;
 }
 
+export function pathSlots(center, range, path, spacing) {
+  const slots = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    const a = path[i], b = path[i + 1];
+    const segLen = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(1, Math.floor(segLen / spacing));
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+      if (Math.hypot(x - center.x, y - center.y) <= range) slots.push({ x, y });
+    }
+  }
+  return slots;
+}
+
 // 預先算出所有可蓋格（除走道外的整片網格），回傳 key 的 Set
 export function computeBuildableCells(map) {
   const set = new Set();

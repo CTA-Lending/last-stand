@@ -1,7 +1,13 @@
 import { TOWERS } from '../data/towers.js';
 import { upgradeTower, upgradeCost, canUpgrade, canBranch, branchOptions, chooseBranch, sellValue, isTowerUnlocked, towerLockReason } from '../entities/tower.js';
 import { releaseBarracks } from '../systems/blocking.js';
+import { pathSlots } from '../systems/grid.js';
 import { BALANCE } from '../data/balance.js';
+
+// 地雷塔升級/分支改變 range 後，重算佈雷點(否則 range 升級是死數值)
+function refreshMineSlots(t, state) {
+  if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, state.map.path, 26);
+}
 
 export function initBuildMenu(state) {
   const bar = document.getElementById('buildbar');
@@ -65,18 +71,22 @@ export function showTowerPanel(state) {
   const lvLabel = t.branch != null ? def.branches[t.branch].name : 'Lv.' + (t.level + 1);
   const statLine = t.kind === 'barracks'
     ? `<div>士兵 ${t.maxSoldiers}名 · 血${t.soldierHp} 攻${t.soldierDmg}</div>`
+    : t.kind === 'banner'
+    ? `<div>光環 傷害×${t.buffDamage} 射速×${t.buffFireRate} · 範圍${t.range}</div>`
+    : t.kind === 'mine'
+    ? `<div>地雷 ${t.maxMines}顆 · 傷害${t.damage} 範圍${t.splash}</div>`
     : `<div>傷害 ${t.damage} · 射程 ${t.range}</div>`;
   panel.innerHTML = `<b>${def.name}</b> ${lvLabel}
     ${statLine}
     ${actions}
     <button id="sell">賣出 (+${sell}g)</button>`;
   const upg = document.getElementById('upg');
-  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); showTowerPanel(state); } };
+  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); refreshMineSlots(t, state); showTowerPanel(state); } };
   for (const i of [0, 1]) {
     const bb = document.getElementById('br' + i);
     if (bb) bb.onclick = () => {
       const cost = branchOptions(t)[i].cost;
-      if (state.economy.spend(cost)) { chooseBranch(t, i); showTowerPanel(state); }
+      if (state.economy.spend(cost)) { chooseBranch(t, i); refreshMineSlots(t, state); showTowerPanel(state); }
     };
   }
   document.getElementById('sell').onclick = () => {

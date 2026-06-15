@@ -8,7 +8,7 @@ let nextId = 1;
 export function spawnProjectile(tower, target) {
   const proj = {
     id: nextId++, x: tower.x, y: tower.y, targetId: target.id,
-    speed: 420, damage: tower.damage, attackType: tower.attackType,
+    speed: 420, damage: tower.damage * (tower.buffDmg || 1), attackType: tower.attackType,
     splash: tower.splash, effect: tower.effect || null,
     color: tower.color, alive: true, chain: tower.chain || null,
     polymorph: tower.polymorph || null,
