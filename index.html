@@ -153,7 +153,15 @@
   .lobby-panel h1 .crest{ width:26px; height:26px; color:var(--gold); }
   .lobby-sub{ font-family:var(--display); font-size:12px; letter-spacing:.34em; color:var(--dim);
     text-transform:uppercase; margin:0 0 16px; padding-left:.34em; }
-  #diamondbar{ display:inline-flex; align-items:center; gap:6px; color:var(--jade); margin-bottom:16px; font-size:17px; letter-spacing:.04em; }
+  #diamondbar{ display:inline-flex; align-items:center; gap:6px; color:var(--jade); margin-bottom:10px; font-size:17px; letter-spacing:.04em; }
+  .login-slot{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin:0 0 12px; }
+  .login-slot:empty{ display:none; }
+  .li-name{ color:var(--jade); font-size:13px; }
+  .li-name b{ color:#8df0d0; }
+  .li-hint{ color:var(--dim); font-size:11px; }
+  .li-btn{ font-family:var(--body); font-size:12px; padding:5px 11px; cursor:pointer; transition:.15s;
+    background:rgba(255,255,255,.05); color:var(--ink); border:1px solid var(--edge-soft); border-radius:9px; }
+  .li-btn:hover{ border-color:var(--edge); color:var(--gold-b); }
   #diamondbar b{ color:#8df0d0; }
   .lobby-section{ display:flex; align-items:center; gap:12px; justify-content:center; margin:11px 0; }
   .lobby-label{ color:var(--dim); width:48px; text-align:right; font-size:14px; }
@@ -303,6 +311,7 @@
         <h1><svg class="ic crest" viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>守關者</h1>
         <div class="lobby-sub">LAST STAND · 淨化心魔</div>
         <div id="diamondbar"><svg class="ic" viewBox="0 0 24 24" style="color:var(--jade)"><path d="M6 4h12l3.4 5.4L12 21 2.6 9.4z"/><path d="M2.6 9.4h18.8M9 4 6 9.4 12 21 18 9.4 15 4"/></svg> <b id="dia-count">0</b></div>
+        <div id="loginslot" class="login-slot"></div>
         <div class="lobby-section"><span class="lobby-label">模式</span><span id="modebar"></span></div>
         <div class="lobby-section"><span class="lobby-label">地圖</span><span id="mapbar"></span></div>
         <button id="enterRun"><svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:none;fill:currentColor"><path d="M8 5.4v13.2l11-6.6z"/></svg> 進入副本</button>

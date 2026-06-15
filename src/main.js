@@ -36,6 +36,7 @@ import { campaignWave } from './systems/campaign.js';
 import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
 import { openLevelSelect } from './ui/levelSelect.js';
 import { openGuide } from './ui/guide.js';
+import { initAuth, isAuthEnabled, renderLoginButton, logout } from './auth/login.js';
 import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
@@ -84,6 +85,25 @@ function initDexButton() {
   b.innerHTML = btnLabel('book', '圖鑑');
   b.onclick = () => openCollection(gachaUnlocked);
   bar.appendChild(b);
+}
+
+// Google 登入（沿用 CTA 會員系統）：enabled 後在大廳顯示登入鈕/登入狀態
+function setupLogin() {
+  const slot = document.getElementById('loginslot');
+  if (!slot) return;
+  const paint = (user) => {
+    if (user) {
+      slot.innerHTML = `<span class="li-name">已登入 <b>${user.name}</b></span> <button class="li-btn" id="li-logout">登出</button>`;
+      const lo = document.getElementById('li-logout');
+      if (lo) lo.onclick = () => logout(paint);
+    } else if (isAuthEnabled()) {
+      slot.innerHTML = '<div id="gbtn"></div><span class="li-hint">登入以雲端保存進度</span>';
+      setTimeout(() => renderLoginButton(document.getElementById('gbtn')), 350);
+    } else {
+      slot.innerHTML = '';
+    }
+  };
+  initAuth(paint);
 }
 
 function initGuideButton() {
@@ -571,7 +591,7 @@ function isInRun() {
 
 function boot() {
   loop = createLoop({ update, render: draw });
-  initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton();
+  initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton(); setupLogin();
   document.getElementById('enterRun').onclick = () => { unlockAudio(); startRun(); };
   document.getElementById('hintbtn').onclick = showHint;
 
