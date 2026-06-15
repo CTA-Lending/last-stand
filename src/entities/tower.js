@@ -56,6 +56,25 @@ export function chooseBranch(t, i) {
 
 export function sellValue(t, refundRate) { return Math.floor(t.invested * refundRate); }
 
+// 科技樹：場上要有前置塔才能蓋；gachaOnly 需轉蛋解鎖(gachaUnlocked Set)
+export function isTowerUnlocked(type, towers, gachaUnlocked) {
+  const def = TOWERS[type];
+  if (def.gachaOnly && !(gachaUnlocked && gachaUnlocked.has(type))) return false;
+  if (!def.requires || def.requires.length === 0) return true;
+  return def.requires.every(req => towers.some(t => t.type === req));
+}
+
+// 未解鎖時給 UI 的提示字串；已解鎖回 null
+export function towerLockReason(type, towers, gachaUnlocked) {
+  const def = TOWERS[type];
+  if (def.gachaOnly && !(gachaUnlocked && gachaUnlocked.has(type))) return '🔒 轉蛋解鎖';
+  if (def.requires) {
+    const missing = def.requires.filter(req => !towers.some(t => t.type === req));
+    if (missing.length) return '🔒 需' + missing.map(r => TOWERS[r].name).join('、');
+  }
+  return null;
+}
+
 export function updateTower(t, enemies, projectiles, dt) {
   t.cooldown -= dt;
   if (t.cooldown > 0) return;

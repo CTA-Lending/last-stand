@@ -28,6 +28,7 @@ export const TOWERS = {
   },
   elf_druid: {
     name: '精靈纏繞德魯伊', faction: 'elf', attackType: 'magic', canHitAir: true,
+    requires: ['elf_archer'],
     color: '#3bbf8f', splash: 0, effect: { slow: { factor: 0.5, duration: 2 } },
     levels: [ { cost: 80, damage: 6, range: 110, fireRate: 1.0 }, { cost: 70, damage: 10, range: 120, fireRate: 1.1 } ],
     branches: [
@@ -37,6 +38,7 @@ export const TOWERS = {
   },
   dwarf_mortar: {
     name: '矮人燃燒投石', faction: 'dwarf', attackType: 'siege', canHitAir: false,
+    requires: ['dwarf_cannon'],
     color: '#d8632f', splash: 48, effect: { dot: { dps: 10, duration: 3 } },
     levels: [ { cost: 120, damage: 22, range: 150, fireRate: 0.5 }, { cost: 110, damage: 40, range: 160, fireRate: 0.55 } ],
     branches: [
@@ -54,6 +56,26 @@ export const TOWERS = {
     branches: [
       { name: '重裝騎士', cost: 150, soldierHp: 200, soldierDmg: 16, soldierAtk: 1.0, maxSoldiers: 3, engageRange: 54 },
       { name: '聖殿守衛', cost: 150, soldierHp: 130, soldierDmg: 30, soldierAtk: 1.2, maxSoldiers: 2, engageRange: 54 },
+    ],
+  },
+
+  // 🎰 轉蛋專屬傳奇塔（gachaOnly：建造列顯示為「🔒 轉蛋解鎖」，Phase 3 抽到才能用）
+  dragon_whelp: {
+    name: '龍族幼龍', faction: 'dragon', attackType: 'siege', canHitAir: true, gachaOnly: true,
+    color: '#e0552d', splash: 55,
+    levels: [ { cost: 200, damage: 70, range: 140, fireRate: 0.9 }, { cost: 180, damage: 120, range: 150, fireRate: 1.0 } ],
+    branches: [
+      { name: '烈焰巨龍', cost: 260, damage: 200, range: 165, fireRate: 1.1, splash: 75 },
+      { name: '灼燒之翼', cost: 260, damage: 130, range: 160, fireRate: 1.2, splash: 60, effect: { dot: { dps: 40, duration: 3 } } },
+    ],
+  },
+  divine_temple: {
+    name: '神族聖殿', faction: 'god', attackType: 'magic', canHitAir: true, gachaOnly: true,
+    color: '#ffd973', splash: 40,
+    levels: [ { cost: 220, damage: 60, range: 150, fireRate: 1.2 }, { cost: 200, damage: 100, range: 160, fireRate: 1.3 } ],
+    branches: [
+      { name: '天罰審判', cost: 280, damage: 190, range: 175, fireRate: 1.2, splash: 50 },
+      { name: '聖光普照', cost: 280, damage: 120, range: 185, fireRate: 1.6, splash: 45 },
     ],
   },
 };

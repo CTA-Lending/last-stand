@@ -6,12 +6,12 @@ import { render } from './render/renderer.js';
 import { updateParticles, burst } from './render/particles.js';
 import { buildWave } from './systems/endlessDirector.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
-import { buildTower, updateTower } from './entities/tower.js';
+import { buildTower, updateTower, isTowerUnlocked } from './entities/tower.js';
 import { updateBlocking } from './systems/blocking.js';
 import { updateProjectile } from './entities/projectile.js';
 import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver } from './ui/hud.js';
-import { initBuildMenu, showTowerPanel, refreshBuildButtons } from './ui/buildMenu.js';
+import { initBuildMenu, showTowerPanel, refreshBuildButtons, refreshBuildLocks } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
 import { cellOf, cellKey, cellCenter, nearestPointOnPath } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
@@ -84,6 +84,7 @@ function draw() {
   render(ctx, state, mouse);
   updateHud(state);
   refreshSpellBar(state);
+  refreshBuildLocks(state);
 }
 
 canvas.addEventListener('mousemove', e => {
@@ -133,6 +134,10 @@ canvas.addEventListener('click', () => {
   }
   // 建塔：點哪格蓋哪格（非走道、未佔用、一格一塔）
   if (s.selectedTowerType) {
+    // 前置塔被賣掉等情況 → 已選的塔可能變回鎖定，擋下並退出建造
+    if (!isTowerUnlocked(s.selectedTowerType, s.towers, s.gachaUnlocked)) {
+      s.selectedTowerType = null; refreshBuildButtons(s); return;
+    }
     const { col, row } = cellOf(mouse.x, mouse.y, s.map.tile);
     const key = cellKey(col, row);
     if (s.buildableCells.has(key) && !s.occupiedCells.has(key)) {
