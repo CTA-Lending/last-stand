@@ -123,6 +123,7 @@ export const TOWERS = {
   dragon_whelp: {
     name: '龍族幼龍', faction: 'dragon', attackType: 'siege', canHitAir: true, gachaOnly: true,
     color: '#e0552d', splash: 55,
+    lore: '遠古巨龍的幼雛。烈焰吐息焚盡成群之敵，連翱翔天際的飛行單位也無所遁形。',
     levels: [ { cost: 200, damage: 70, range: 140, fireRate: 0.9 }, { cost: 180, damage: 120, range: 150, fireRate: 1.0 } ],
     branches: [
       { name: '烈焰巨龍', cost: 260, damage: 200, range: 165, fireRate: 1.1, splash: 75 },
@@ -132,6 +133,7 @@ export const TOWERS = {
   divine_temple: {
     name: '神族聖殿', faction: 'god', attackType: 'magic', canHitAir: true, gachaOnly: true,
     color: '#ffd973', splash: 40,
+    lore: '神族降臨的聖殿。以神聖審判淨化邪惡，聖光普照之處，黑暗無所容身。',
     levels: [ { cost: 220, damage: 60, range: 150, fireRate: 1.2 }, { cost: 200, damage: 100, range: 160, fireRate: 1.3 } ],
     branches: [
       { name: '天罰審判', cost: 280, damage: 190, range: 175, fireRate: 1.2, splash: 50 },

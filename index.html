@@ -35,6 +35,17 @@
   #mapbar button { margin-left:6px; font-size:12px; padding:2px 8px; cursor:pointer;
                    background:#2b3346; color:#eee; border:1px solid #3d4760; border-radius:6px; }
   #mapbar button.active { border-color:#ffe08a; }
+  #gachabtn button { margin-left:10px; font-size:13px; padding:3px 10px; cursor:pointer;
+                     background:#4a3320; color:#ffe08a; border:1px solid #ffe08a; border-radius:6px; }
+  #gachaoverlay { position:absolute; inset:0; background:rgba(0,0,0,.7); display:none;
+                  align-items:center; justify-content:center; }
+  .gacha-panel { background:#222a3a; padding:28px 36px; border-radius:14px; text-align:center; min-width:300px; }
+  .gacha-panel h2 { margin:0 0 8px; }
+  .gacha-card { margin:16px auto; padding:18px; border-radius:12px; width:200px; }
+  .gacha-roll { margin-top:10px; padding:10px 26px; font-size:16px; cursor:pointer; border:none;
+                border-radius:8px; background:#7f77dd; color:#fff; }
+  .gacha-roll:disabled { opacity:.5; cursor:default; }
+  .gacha-close { display:block; margin:14px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -46,11 +57,13 @@
     <span>⏱️<b id="hud-time">0s</b></span>
     <span id="hud-next" style="color:#ffe08a;font-weight:bold;"></span>
     <span id="mapbar"></span>
+    <span id="gachabtn"></span>
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
     <div id="towerpanel"></div>
     <div id="overlay"></div>
+    <div id="gachaoverlay"></div>
   </div>
   <div id="buildbar"></div>
   <div id="spellbar"></div>

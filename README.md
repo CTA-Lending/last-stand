@@ -12,9 +12,10 @@
 
 ## 跑法（規劃）
 
-ES Modules 需經 http 載入：
+ES Modules 需經 http 載入。建議用內附的無快取伺服器（避免瀏覽器 cache 舊的 module）：
 
 ```bash
-python -m http.server 8000
+cd last-stand
+python serve.py 8000
 # 瀏覽器開 http://localhost:8000
 ```
