@@ -85,5 +85,5 @@ export function updateTower(t, enemies, projectiles, dt) {
   const target = selectTarget(t, enemies);
   if (!target) return;
   projectiles.push(spawnProjectile(t, target));
-  t.cooldown = 1 / t.fireRate;
+  t.cooldown = 1 / (t.fireRate * (t.buffRate || 1));
 }
