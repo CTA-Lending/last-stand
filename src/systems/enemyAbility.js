@@ -9,7 +9,10 @@ export function applyEnemyAbilities(ctx, dt) {
     const a = e.ability;
     switch (a.type) {
       case 'enrage':
-        if (!e.enraged && e.hp / e.maxHp <= a.threshold) { e.speed *= a.boost; e.enraged = true; }
+        if (!e.enraged && e.hp / e.maxHp <= a.threshold) {
+          e.speed *= a.boost; e.enraged = true;
+          if (ctx.onAbility) ctx.onAbility(e, a.type);
+        }
         break;
       case 'healAura':
         for (const o of enemies) if (o.alive && o !== e && o.hp < o.maxHp && dist(e.x, e.y, o.x, o.y) <= a.radius)
@@ -23,7 +26,10 @@ export function applyEnemyAbilities(ctx, dt) {
         break;
       case 'goldSteal':
         e.abilityCd -= dt;
-        if (e.abilityCd <= 0) { economy.gold = Math.max(0, economy.gold - a.amount); e.abilityCd = a.interval; }
+        if (e.abilityCd <= 0) {
+          economy.gold = Math.max(0, economy.gold - a.amount); e.abilityCd = a.interval;
+          if (ctx.onAbility) ctx.onAbility(e, a.type);
+        }
         break;
       case 'summon':
         e.abilityCd -= dt;
@@ -31,6 +37,7 @@ export function applyEnemyAbilities(ctx, dt) {
           // 軟上限內才召喚，避免無上限堆怪拖效能/卡住波次清空判定
           if (enemies.reduce((n, o) => n + (o.alive ? 1 : 0), 0) < ENEMY_CAP) spawnMinion(e, a.minion);
           e.abilityCd = a.interval;
+          if (ctx.onAbility) ctx.onAbility(e, a.type);
         }
         break;
     }

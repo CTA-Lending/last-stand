@@ -3,6 +3,8 @@ const active = [];
 const sparks = [];
 const texts = [];
 const flashes = [];
+const flashesScreen = [];
+const shocks = [];
 
 function obtain() { return pool.pop() || {}; }
 
@@ -44,6 +46,14 @@ export function flash(x, y, color, r = 14) {
   flashes.push({ x, y, color, r, life: 0.18, maxLife: 0.18 });
 }
 
+export function screenFlash(color, alpha) {
+  flashesScreen.push({ color, alpha, life: 0.35, maxLife: 0.35 });
+}
+
+export function shockwave(x, y, color, maxR) {
+  shocks.push({ x, y, color, r: 8, maxR, life: 0.5, maxLife: 0.5 });
+}
+
 export function updateParticles(dt) {
   for (let i = active.length - 1; i >= 0; i--) {
     const p = active[i];
@@ -59,6 +69,8 @@ export function updateParticles(dt) {
   }
   for (let i = texts.length - 1; i >= 0; i--) { const t = texts[i]; t.life -= dt; t.y += t.vy * dt; if (t.life <= 0) texts.splice(i, 1); }
   for (let i = flashes.length - 1; i >= 0; i--) { flashes[i].life -= dt; if (flashes[i].life <= 0) flashes.splice(i, 1); }
+  for (let i = flashesScreen.length - 1; i >= 0; i--) { flashesScreen[i].life -= dt; if (flashesScreen[i].life <= 0) flashesScreen.splice(i, 1); }
+  for (let i = shocks.length - 1; i >= 0; i--) { shocks[i].life -= dt; if (shocks[i].life <= 0) shocks.splice(i, 1); }
 }
 
 export function drawParticles(ctx) {
@@ -95,4 +107,26 @@ export function drawParticles(ctx) {
     ctx.shadowBlur = 0;
   }
   ctx.globalAlpha = 1; ctx.textAlign = 'start';
+}
+
+export function drawScreenEffects(ctx, w, h) {
+  // Shockwave rings
+  for (const s of shocks) {
+    const progress = 1 - s.life / s.maxLife;
+    ctx.globalAlpha = (s.life / s.maxLife) * 0.6;
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r + progress * s.maxR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  // Full-canvas flash
+  for (const f of flashesScreen) {
+    ctx.globalAlpha = f.alpha * (f.life / f.maxLife);
+    ctx.fillStyle = f.color;
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
 }

@@ -33,6 +33,11 @@
 
   #stage{ position:relative; border-radius:17px; z-index:1;
     box-shadow:0 0 0 1px var(--edge), 0 22px 55px rgba(0,0,0,.6), inset 0 0 0 4px rgba(0,0,0,.3); }
+  #wavebanner{ position:absolute; top:38%; left:0; right:0; text-align:center; pointer-events:none; z-index:3;
+    font-family:var(--display); font-size:34px; color:var(--gold-b); text-shadow:0 0 20px rgba(232,200,122,.5),0 2px 6px #000;
+    opacity:0; transition:none; }
+  #wavebanner.show{ animation:waveBanner 1.6s ease-out; }
+  @keyframes waveBanner{ 0%{opacity:0; transform:scale(.7);} 18%{opacity:1; transform:scale(1.05);} 70%{opacity:1;} 100%{opacity:0; transform:scale(1);} }
   canvas{ display:block; background:#141a26; border-radius:13px; cursor:crosshair; }
 
   #buildbar{ display:flex; gap:10px; padding:14px 10px; flex-wrap:wrap; justify-content:center; z-index:1; max-width:820px; }
@@ -171,6 +176,7 @@
   </div>
   <div id="stage">
     <canvas id="game" width="800" height="480"></canvas>
+    <div id="wavebanner"></div>
     <div id="towerpanel"></div>
     <div id="overlay"></div>
     <div id="gachaoverlay"></div>

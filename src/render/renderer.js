@@ -1,4 +1,4 @@
-import { drawParticles } from './particles.js';
+import { drawParticles, drawScreenEffects } from './particles.js';
 import { rgba, lighten } from './colors.js';
 import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
@@ -277,6 +277,7 @@ export function render(ctx, state, mouse) {
   vignette.addColorStop(0, 'transparent');
   vignette.addColorStop(1, 'rgba(8,6,14,0.45)');
   ctx.fillStyle = vignette; ctx.fillRect(0, 0, w, h);
+  drawScreenEffects(ctx, w, h);
   drawRangePreview(ctx, state, mouse);
   if (state.selectedTower) {
     const t = state.selectedTower;

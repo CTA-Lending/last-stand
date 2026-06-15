@@ -1,10 +1,11 @@
+import { sfx, unlockAudio } from './render/audio.js';
 import { MAP1 } from './data/map1.js';
 import { MAP2 } from './data/map2.js';
 import { BALANCE } from './data/balance.js';
 import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
-import { updateParticles, burst, spark, floatText, flash, motes } from './render/particles.js';
+import { updateParticles, burst, spark, floatText, flash, motes, screenFlash, shockwave } from './render/particles.js';
 import { buildWave, minionSpec } from './systems/endlessDirector.js';
 import { applyEnemyAbilities } from './systems/enemyAbility.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
@@ -99,6 +100,23 @@ function initGachaButton() {
   bar.appendChild(b);
 }
 
+function showWaveBanner(s) {
+  const el = document.getElementById('wavebanner');
+  if (!el) return;
+  const isBossWave = s.mode === 'campaign'
+    ? (s.level && s.wave >= s.totalWaves)
+    : (s.wave % BALANCE.endless.bossEvery === 0);
+  let text = '第 ' + s.wave + ' 波';
+  if (isBossWave) {
+    const bossName = s.wave % (BALANCE.endless.demonBossEvery || 10) === 0 ? '魔王' : '死亡騎士';
+    text = '⚠ 首領 · ' + bossName;
+  }
+  el.textContent = text;
+  el.classList.remove('show');
+  void el.offsetWidth; // reflow to restart animation
+  el.classList.add('show');
+}
+
 function maybeStartWave(s) {
   if (s.wave >= s.totalWaves) return false;     // 戰役達標不再開波(無盡為 Infinity 永遠開)
   s.wave += 1;
@@ -107,12 +125,15 @@ function maybeStartWave(s) {
     : buildWave(s.wave, s.hpMult);
   s.spawnTimer = 0;
   s.waveTimer = BALANCE.endless.waveInterval;
+  sfx.wave();
+  showWaveBanner(s);
   return true;
 }
 
 function update(dt) {
   const s = state;
   if (s.over) return;
+  if (s.hitStop > 0) { s.hitStop -= dt; return; }
   s.now += dt;
   s.shake *= 0.86; if (s.shake < 0.3) s.shake = 0;
   tickSpells(s.spells, dt);
@@ -142,6 +163,13 @@ function update(dt) {
       m.x = from.x; m.y = from.y; m.seg = from.seg;
       s.enemies.push(m);
     },
+    onAbility: (e, type) => {
+      const label = { enrage: '狂怒!', goldSteal: '貪婪!', summon: '召喚!' }[type];
+      if (label) {
+        floatText(e.x, e.y - e.radius - 10, label, '#ff7a4a', 16);
+        flash(e.x, e.y, '#ff7a4a', 20);
+      }
+    },
   }, dt);
   for (const t of s.towers) {
     if (t.kind === 'barracks') updateBlocking(t, s.enemies, dt, s.now);
@@ -149,10 +177,12 @@ function update(dt) {
     else if (t.kind === 'mine') { for (const d of updateMines(t, s.enemies, dt)) burst(d.x, d.y, '#ffb13a', 18); }
     else updateTower(t, s.enemies, s.projectiles, dt);
   }
+  const prevProjLen = s.projectiles.length;
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
     const hit = updateProjectile(p, s.enemies, dt, s.now);
     if (hit) {
+      sfx.hit();
       if (hit.nodes && hit.nodes.length > 1) {
         for (let n = 1; n < hit.nodes.length; n++)
           spark(hit.nodes[n - 1].x, hit.nodes[n - 1].y, hit.nodes[n].x, hit.nodes[n].y, p.color);
@@ -163,17 +193,28 @@ function update(dt) {
     }
     if (!p.alive) s.projectiles.splice(i, 1);
   }
+  if (s.projectiles.length > prevProjLen) sfx.fire();
   for (const e of s.enemies) {
     const wasAlive = e.alive;
     updateEnemy(e, s.map, dt, s.now);
     if (wasAlive && !e.alive) {
       e.deathT = 0.14;
-      if (e.reachedEnd) { s.economy.loseLife(1); }
-      else {
+      if (e.reachedEnd) {
+        s.economy.loseLife(1);
+        s.shake = 4;
+        screenFlash('#e0405a', 0.22);
+        sfx.leak();
+      } else {
         s.economy.earn(e.bounty); s.economy.addScore(e.boss ? 100 : 10);
         burst(e.x, e.y, e.color, e.boss ? 28 : 12);
-        if (e.boss) { s.shake = 9; flash(e.x, e.y, e.color, 26); }
-        else { motes(e.x, e.y); }
+        if (e.boss) {
+          s.shake = 9; flash(e.x, e.y, e.color, 26);
+          s.hitStop = 0.06;
+          sfx.boss();
+        } else {
+          motes(e.x, e.y);
+          sfx.kill();
+        }
       }
     }
   }
@@ -185,6 +226,7 @@ function update(dt) {
   if (s.mode === 'campaign' && !s.over && s.wave >= s.totalWaves
       && s.spawnQueue.length === 0 && s.enemies.every(e => !e.alive) && !s.economy.isDead()) {
     s.over = true; s.won = true;
+    sfx.win();
     const key = campaignKey(s);
     const time = Math.floor(s.economy.elapsed);
     save.submitCampaign(key, time);
@@ -238,6 +280,10 @@ function castFrost(s) {
     e.slowUntil = s.now + SPELLS.frost.duration; e.slowFactor = 0; // 凍結
   }
   burst(s.map.width / 2, s.map.height / 2, '#a9d8ff', 40);
+  screenFlash('#bfe9ff', 0.3);
+  shockwave(s.map.width / 2, s.map.height / 2, '#bfe9ff', 260);
+  s.shake = 6;
+  sfx.frost();
 }
 
 function castFireRain(s, x, y) {
@@ -250,6 +296,16 @@ function castFireRain(s, x, y) {
     }
   }
   burst(x, y, '#ff7a2f', 36);
+  // Extra staggered bursts for drama
+  for (let i = 0; i < 4; i++) {
+    const ox = (Math.random() * 2 - 1) * def.radius * 0.7;
+    const oy = (Math.random() * 2 - 1) * def.radius * 0.7;
+    burst(x + ox, y + oy, '#ff7a2f', 14);
+  }
+  screenFlash('#ff7a2f', 0.18);
+  shockwave(x, y, '#ff7a2f', def.radius * 1.5);
+  s.shake = 5;
+  sfx.firerain();
   s.castMode = null;
 }
 
@@ -344,6 +400,7 @@ function enterLobby() {
 }
 
 function startRun() {
+  unlockAudio();
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
   showInGameUI(true);
@@ -366,7 +423,7 @@ function restart() {
 function boot() {
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons();
-  document.getElementById('enterRun').onclick = () => startRun();
+  document.getElementById('enterRun').onclick = () => { unlockAudio(); startRun(); };
   enterLobby();
 }
 boot();

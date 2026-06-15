@@ -18,7 +18,7 @@ export function createGameState(map, opts = {}) {
     occupiedCells: new Set(),                    // 已建塔的格 key
     wave: 0, waveTimer: 0, spawnQueue: [], spawnTimer: 0, spawnCount: 0,
     selectedTowerType: null, selectedTower: null,
-    now: 0, over: false, started: false, shake: 0,
+    now: 0, over: false, started: false, shake: 0, hitStop: 0,
     spells: createSpellState(),
     castMode: null,
   };
