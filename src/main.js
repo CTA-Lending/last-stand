@@ -12,6 +12,7 @@ import { createSaveService } from './services/saveService.js';
 import { updateHud, showGameOver } from './ui/hud.js';
 import { initBuildMenu, showTowerPanel } from './ui/buildMenu.js';
 import { dist } from './core/geometry.js';
+import { cellOf, cellKey, cellCenter } from './systems/grid.js';
 import { TOWERS } from './data/towers.js';
 import { tickSpells, trigger, isReady, SPELLS } from './systems/spells.js';
 import { initSpellBar, refreshSpellBar } from './ui/spellBar.js';
@@ -126,20 +127,18 @@ canvas.addEventListener('click', () => {
   if (hitTower && !s.selectedTowerType) {
     s.selectedTower = hitTower; showTowerPanel(s); return;
   }
-  // 建塔
+  // 建塔：點哪格蓋哪格（非走道、未佔用、一格一塔）
   if (s.selectedTowerType) {
-    let idx = -1, best = 24;
-    s.map.buildSlots.forEach((slot, i) => {
-      const d = dist(slot.x, slot.y, mouse.x, mouse.y);
-      if (d < best && !s.occupiedSlots.has(i)) { best = d; idx = i; }
-    });
-    if (idx >= 0) {
+    const { col, row } = cellOf(mouse.x, mouse.y, s.map.tile);
+    const key = cellKey(col, row);
+    if (s.buildableCells.has(key) && !s.occupiedCells.has(key)) {
       const cost = TOWERS[s.selectedTowerType].levels[0].cost;
       if (s.economy.spend(cost)) {
-        const t = buildTower(s.selectedTowerType, s.map.buildSlots[idx]);
-        t.slotIndex = idx;
+        const c = cellCenter(col, row, s.map.tile);
+        const t = buildTower(s.selectedTowerType, { x: c.x, y: c.y });
+        t.cellKey = key;
         s.towers.push(t);
-        s.occupiedSlots.add(idx);
+        s.occupiedCells.add(key);
       }
     }
     return;

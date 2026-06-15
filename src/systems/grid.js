@@ -1,0 +1,53 @@
+import { dist } from '../core/geometry.js';
+
+// 距走道中心線小於此值的格子視為走道、不可蓋（走道半寬約17 + 塔半寬約13）
+const BLOCK_RADIUS = 28;
+
+export function cellOf(x, y, tile) {
+  return { col: Math.floor(x / tile), row: Math.floor(y / tile) };
+}
+
+export function cellKey(col, row) {
+  return col + ',' + row;
+}
+
+export function cellCenter(col, row, tile) {
+  return { x: col * tile + tile / 2, y: row * tile + tile / 2 };
+}
+
+function pointSegDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return dist(px, py, ax + dx * t, ay + dy * t);
+}
+
+// 點到整條 waypoint 折線的最短距離
+export function pathDistance(x, y, path) {
+  let min = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const d = pointSegDist(x, y, path[i].x, path[i].y, path[i + 1].x, path[i + 1].y);
+    if (d < min) min = d;
+  }
+  return min;
+}
+
+export function isBuildable(col, row, map) {
+  const c = cellCenter(col, row, map.tile);
+  if (c.x < 0 || c.y < 0 || c.x > map.width || c.y > map.height) return false;
+  return pathDistance(c.x, c.y, map.path) > BLOCK_RADIUS;
+}
+
+// 預先算出所有可蓋格（除走道外的整片網格），回傳 key 的 Set
+export function computeBuildableCells(map) {
+  const set = new Set();
+  const cols = Math.floor(map.width / map.tile);
+  const rows = Math.floor(map.height / map.tile);
+  for (let col = 0; col < cols; col++) {
+    for (let row = 0; row < rows; row++) {
+      if (isBuildable(col, row, map)) set.add(cellKey(col, row));
+    }
+  }
+  return set;
+}

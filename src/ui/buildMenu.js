@@ -41,7 +41,7 @@ export function showTowerPanel(state) {
   document.getElementById('sell').onclick = () => {
     state.economy.earn(Math.floor(TOWERS[t.type].levels[t.level].cost * BALANCE.sellRefund));
     state.towers = state.towers.filter(x => x !== t);
-    state.occupiedSlots.delete(t.slotIndex);
+    state.occupiedCells.delete(t.cellKey);
     state.selectedTower = null; panel.style.display = 'none';
   };
 }
