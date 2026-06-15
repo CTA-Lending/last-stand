@@ -80,6 +80,18 @@
               background:#7f77dd; color:#fff; border:none; border-radius:10px; }
   #enterRun:hover { background:#9089e6; }
   .lobby-menu { display:flex; gap:8px; justify-content:center; margin-top:14px; }
+  #diamondbar { color:#7fe0ff; margin-bottom:10px; }
+  #shopbtn button, #loadoutbtn button { margin-left:8px; font-size:13px; padding:3px 10px; cursor:pointer;
+    background:#2b3346; color:#7fe0ff; border:1px solid #3d4760; border-radius:6px; }
+  #shopoverlay, #loadoutoverlay { position:absolute; inset:0; background:rgba(0,0,0,.82);
+    display:none; align-items:center; justify-content:center; z-index:6; }
+  .shop-panel, .lo-panel { background:#1f2632; padding:22px 26px; border-radius:14px; max-width:720px; max-height:90%; overflow:auto; }
+  .shop-grid, .lo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+  .shop-card, .lo-card { background:#2a3340; border-radius:10px; padding:10px; font-size:12px; text-align:center; cursor:pointer; }
+  .shop-card.owned { opacity:.55; cursor:default; }
+  .lo-card.in { border:2px solid #ffe08a; }
+  .lo-card.disabled { opacity:.4; }
+  .ov-close { display:block; margin:16px auto 0; background:none; border:none; color:#aaa; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -98,14 +110,17 @@
     <div id="gachaoverlay"></div>
     <div id="dexoverlay"></div>
     <div id="lboverlay"></div>
+    <div id="shopoverlay"></div>
+    <div id="loadoutoverlay"></div>
     <div id="lobby">
       <div class="lobby-panel">
         <h1>🏰 守關者 · 大廳</h1>
+        <div id="diamondbar">💎 <b id="dia-count">0</b></div>
         <div class="lobby-section"><span class="lobby-label">模式</span><span id="modebar"></span></div>
         <div class="lobby-section"><span class="lobby-label">地圖</span><span id="mapbar"></span></div>
         <button id="enterRun">⚔️ 進入副本</button>
         <div class="lobby-menu">
-          <span id="gachabtn"></span><span id="dexbtn"></span><span id="lbbtn"></span>
+          <span id="gachabtn"></span><span id="dexbtn"></span><span id="lbbtn"></span><span id="shopbtn"></span><span id="loadoutbtn"></span>
         </div>
       </div>
     </div>

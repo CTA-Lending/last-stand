@@ -1,3 +1,5 @@
+import { STARTER_TOWERS } from '../systems/account.js';
+
 const KEY = 'laststand.endless.best';
 const PROFILE_KEY = 'laststand.profile';
 const CAMPAIGN_KEY = 'laststand.campaign';
@@ -24,9 +26,15 @@ export function createSaveService(storage = globalThis.localStorage) {
     },
     loadProfile() {
       const raw = storage ? storage.getItem(PROFILE_KEY) : null;
-      const def = { tickets: 0, unlocked: [], lastLogin: null };
+      const def = { tickets: 0, unlocked: [], lastLogin: null, diamonds: 0,
+        owned: [...STARTER_TOWERS], loadout: [...STARTER_TOWERS] };
       if (!raw) return def;
-      try { return { ...def, ...JSON.parse(raw) }; } catch { return def; }
+      try {
+        const p = { ...def, ...JSON.parse(raw) };
+        // 舊存檔遷移：把轉蛋解鎖過的傳奇塔併入 owned，避免被覆蓋遺失
+        for (const t of (p.unlocked || [])) if (!p.owned.includes(t)) p.owned.push(t);
+        return p;
+      } catch { return def; }
     },
     saveProfile(p) { if (storage) storage.setItem(PROFILE_KEY, JSON.stringify(p)); },
     getCampaignBest(key) {

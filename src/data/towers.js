@@ -28,7 +28,7 @@ export const TOWERS = {
   },
   elf_druid: {
     name: '精靈纏繞德魯伊', faction: 'elf', attackType: 'magic', canHitAir: true,
-    requires: ['elf_archer'],
+    requires: ['elf_archer'], diamond: 40,
     color: '#3bbf8f', splash: 0, effect: { slow: { factor: 0.5, duration: 2 } },
     levels: [ { cost: 80, damage: 6, range: 110, fireRate: 1.0 }, { cost: 70, damage: 10, range: 120, fireRate: 1.1 } ],
     branches: [
@@ -38,7 +38,7 @@ export const TOWERS = {
   },
   dwarf_mortar: {
     name: '矮人燃燒投石', faction: 'dwarf', attackType: 'siege', canHitAir: false,
-    requires: ['dwarf_cannon'],
+    requires: ['dwarf_cannon'], diamond: 60,
     color: '#d8632f', splash: 48, effect: { dot: { dps: 10, duration: 3 } },
     levels: [ { cost: 120, damage: 22, range: 150, fireRate: 0.5 }, { cost: 110, damage: 40, range: 160, fireRate: 0.55 } ],
     branches: [
@@ -47,7 +47,7 @@ export const TOWERS = {
     ],
   },
   mage_chain: {
-    name: '連環閃電', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'],
+    name: '連環閃電', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'], diamond: 80,
     color: '#5bc8ff', splash: 0, chain: { count: 3, radius: 85, falloff: 0.65 },
     levels: [ { cost: 130, damage: 24, range: 130, fireRate: 1.0 }, { cost: 120, damage: 42, range: 140, fireRate: 1.1 } ],
     branches: [
@@ -56,7 +56,7 @@ export const TOWERS = {
     ],
   },
   elf_moonblade: {
-    name: '精靈月刃', faction: 'elf', attackType: 'physical', canHitAir: true, requires: ['elf_archer'],
+    name: '精靈月刃', faction: 'elf', attackType: 'physical', canHitAir: true, requires: ['elf_archer'], diamond: 70,
     color: '#aef0c8', splash: 0, chain: { count: 2, radius: 75, falloff: 0.6 },
     levels: [ { cost: 110, damage: 20, range: 125, fireRate: 1.3 }, { cost: 100, damage: 34, range: 135, fireRate: 1.5 } ],
     branches: [
@@ -65,7 +65,7 @@ export const TOWERS = {
     ],
   },
   human_ballista: {
-    name: '人類十字弩', faction: 'human', attackType: 'physical', canHitAir: true, requires: ['human_barracks'],
+    name: '人類十字弩', faction: 'human', attackType: 'physical', canHitAir: true, requires: ['human_barracks'], diamond: 80,
     color: '#cdb27a', splash: 0, pierce: 3,
     levels: [ { cost: 110, damage: 24, range: 150, fireRate: 1.0 }, { cost: 100, damage: 42, range: 165, fireRate: 1.1 } ],
     branches: [
@@ -74,7 +74,7 @@ export const TOWERS = {
     ],
   },
   mage_polymorph: {
-    name: '魔法師變形術', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'],
+    name: '魔法師變形術', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'], diamond: 100,
     color: '#e58ad8', splash: 0, polymorph: { chance: 0.12 },
     levels: [ { cost: 140, damage: 14, range: 120, fireRate: 0.9 }, { cost: 130, damage: 22, range: 130, fireRate: 1.0 } ],
     branches: [
@@ -95,7 +95,7 @@ export const TOWERS = {
     ],
   },
   human_banner: {
-    name: '人類號令旗', faction: 'human', kind: 'banner', canHitAir: false, requires: ['human_barracks'],
+    name: '人類號令旗', faction: 'human', kind: 'banner', canHitAir: false, requires: ['human_barracks'], diamond: 90,
     color: '#e8d98a',
     levels: [
       { cost: 110, range: 110, buffDamage: 1.20, buffFireRate: 1.15 },
@@ -107,7 +107,7 @@ export const TOWERS = {
     ],
   },
   dwarf_mine: {
-    name: '矮人地雷', faction: 'dwarf', kind: 'mine', attackType: 'siege', canHitAir: false, requires: ['dwarf_cannon'],
+    name: '矮人地雷', faction: 'dwarf', kind: 'mine', attackType: 'siege', canHitAir: false, requires: ['dwarf_cannon'], diamond: 90,
     color: '#9a7b3a', splash: 50,
     levels: [
       { cost: 120, damage: 60, range: 130, splash: 50, maxMines: 3, mineRate: 2.5 },

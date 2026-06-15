@@ -1,12 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSaveService } from '../src/services/saveService.js';
+import { STARTER_TOWERS } from '../src/systems/account.js';
 
 function fakeStorage() {
   const m = new Map();
   return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)) };
 }
 
+test('舊存檔的 unlocked 傳奇塔遷移併入 owned', () => {
+  const st = fakeStorage();
+  st.setItem('laststand.profile', JSON.stringify({ unlocked: ['dragon_whelp'], lastLogin: '2026-06-15' }));
+  const p = createSaveService(st).loadProfile();
+  assert.ok(p.owned.includes('dragon_whelp'));      // 遷移成功
+  assert.ok(p.owned.includes('elf_archer'));          // 起始塔仍在
+});
 test('無記錄時 best 為 null', () => {
   const s = createSaveService(fakeStorage());
   assert.equal(s.getBest(), null);
@@ -38,6 +46,13 @@ test('saveProfile/loadProfile 往返', () => {
   assert.equal(p.tickets, 2);
   assert.deepEqual(p.unlocked, ['dragon_whelp']);
   assert.equal(p.lastLogin, '2026-06-15');
+});
+test('profile 預設含 diamonds/owned(起始4)/loadout', () => {
+  const s = createSaveService(fakeStorage());
+  const p = s.loadProfile();
+  assert.equal(p.diamonds, 0);
+  assert.deepEqual(p.owned, STARTER_TOWERS);
+  assert.deepEqual(p.loadout, STARTER_TOWERS);
 });
 test('戰役最佳取最短時間', () => {
   const st = fakeStorage(); const s = createSaveService(st);

@@ -10,7 +10,7 @@ export function openGacha(deps) {
 
 function render(ov, deps, reveal) {
   const { profile } = deps;
-  const allUnlocked = GACHA_POOL.every(t => profile.unlocked.includes(t));
+  const allUnlocked = GACHA_POOL.every(t => (profile.owned || profile.unlocked).includes(t));
   const canRoll = profile.tickets > 0 && !allUnlocked;
   const card = reveal ? cardHtml(reveal) : '<div class="gacha-card" style="background:#2b3346;color:#888">轉動看看會抽到什麼…</div>';
   ov.innerHTML = `<div class="gacha-panel">
@@ -24,8 +24,9 @@ function render(ov, deps, reveal) {
   const roll = ov.querySelector('.gacha-roll');
   if (canRoll) roll.onclick = () => {
     profile.tickets -= 1;
-    const res = drawGacha(profile.unlocked, Math.random);
-    if (!res.dup) { profile.unlocked.push(res.type); deps.gachaUnlocked.add(res.type); }
+    const ownedArr = profile.owned || profile.unlocked;
+    const res = drawGacha(ownedArr, Math.random);
+    if (!res.dup) { profile.owned ? profile.owned.push(res.type) : profile.unlocked.push(res.type); deps.gachaUnlocked.add(res.type); }
     else profile.tickets += 1; // 理論上不會(已擋全解鎖)
     deps.save.saveProfile(profile);
     deps.onUnlock();
