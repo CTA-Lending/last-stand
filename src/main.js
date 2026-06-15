@@ -5,7 +5,8 @@ import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
 import { updateParticles, burst, spark } from './render/particles.js';
-import { buildWave } from './systems/endlessDirector.js';
+import { buildWave, minionSpec } from './systems/endlessDirector.js';
+import { applyEnemyAbilities } from './systems/enemyAbility.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
 import { buildTower, updateTower } from './entities/tower.js';
 import { updateBlocking } from './systems/blocking.js';
@@ -122,7 +123,17 @@ function update(dt) {
   }
   if (s.waveTimer <= 0 && s.spawnQueue.length === 0) maybeStartWave(s);
 
+  for (const t of s.towers) { t.debuffRate = 1; t.feared = false; }
   applyAuras(s.towers);
+  applyEnemyAbilities({
+    enemies: s.enemies, towers: s.towers, economy: s.economy,
+    spawnMinion: (from, minionType) => {
+      const spec = minionSpec(s.wave, minionType);
+      const m = spawnEnemy(spec, s.map, from.pathIndex);
+      m.x = from.x; m.y = from.y; m.seg = from.seg;
+      s.enemies.push(m);
+    },
+  }, dt);
   for (const t of s.towers) {
     if (t.kind === 'barracks') updateBlocking(t, s.enemies, dt, s.now);
     else if (t.kind === 'banner') { /* 不開火，光環已套 */ }

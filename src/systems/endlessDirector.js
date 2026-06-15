@@ -3,12 +3,14 @@ import { ENEMIES } from '../data/enemies.js';
 
 const E = BALANCE.endless;
 
-const UNDEAD = ['skeleton', 'zombie', 'banshee'];
-const DEMON  = ['imp', 'succubus', 'warlock', 'infernal'];
+const MINIONS_A = ['xinmo', 'zhizhang', 'yuanhun'];
+const MINIONS_B = ['yunian', 'xinmo', 'zhizhang'];
+const SEVEN = ['emo_nu', 'emo_ai', 'emo_ju', 'emo_aii', 'emo_wu', 'emo_xi', 'emo_yu'];
+const SIX   = ['yu_se', 'yu_sheng', 'yu_xiang', 'yu_wei', 'yu_chu', 'yu_yi'];
 
 function poolFor(wave) {
-  // 每 3 波切換族別，讓玩家面對不同護甲組合
-  return Math.floor((wave - 1) / 3) % 2 === 0 ? UNDEAD : DEMON;
+  // 每 3 波切換化身組合，讓玩家面對不同護甲組合
+  return Math.floor((wave - 1) / 3) % 2 === 0 ? MINIONS_A : MINIONS_B;
 }
 
 function scaledStats(wave, typeKey) {
@@ -17,6 +19,12 @@ function scaledStats(wave, typeKey) {
   const speed = E.speedBase * def.speedMult * Math.pow(E.speedGrowthPer5, Math.floor((wave - 1) / 5));
   const bounty = Math.round(E.bountyBase * def.bountyMult * (1 + (wave - 1) * 0.05));
   return { hp, speed, bounty };
+}
+
+// 供 main.js 召喚使用：以當前波數縮放一隻化身的規格
+export function minionSpec(wave, type) {
+  const s = scaledStats(wave, type);
+  return { type, armorType: ENEMIES[type].armorType, hp: s.hp, maxHp: s.hp, speed: s.speed, bounty: s.bounty, boss: false };
 }
 
 // 回傳這一波的 enemy 規格陣列（尚未含座標，spawn 時補）
@@ -34,15 +42,20 @@ export function buildWave(wave, hpMult = 1) {
     });
   }
   if (wave % E.bossEvery === 0) {
-    const useDemon = wave % E.demonBossEvery === 0;
-    const bossType = useDemon ? 'demonlord' : 'deathknight';
+    const idx = Math.floor(wave / E.bossEvery) - 1;
+    const useSix = wave % E.demonBossEvery === 0;
+    const arr = useSix ? SIX : SEVEN;
+    const bossType = arr[((useSix ? Math.floor(wave / E.demonBossEvery) - 1 : idx) % arr.length + arr.length) % arr.length];
     const s = scaledStats(wave, bossType);
     const bossHp = Math.round(s.hp * E.bossHpMult * hpMult);
     list.push({
       type: bossType, armorType: ENEMIES[bossType].armorType,
       hp: bossHp, maxHp: bossHp,
       speed: s.speed, bounty: Math.round(s.bounty * E.bossBountyMult), boss: true,
+      ability: ENEMIES[bossType].ability || null,
     });
   }
   return list;
 }
+
+export { SEVEN, SIX };
