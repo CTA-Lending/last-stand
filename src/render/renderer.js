@@ -3,18 +3,16 @@ import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
 
+function drawOnePath(ctx, path) {
+  ctx.strokeStyle = '#caa472'; ctx.lineWidth = 34; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+  ctx.strokeStyle = '#a4d3ad'; ctx.lineWidth = 26;
+  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+}
+
 function drawTerrain(ctx, map) {
   ctx.fillStyle = '#cfe3c4'; ctx.fillRect(0, 0, map.width, map.height);
-  // 路徑
-  ctx.strokeStyle = '#caa472'; ctx.lineWidth = 34;
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.beginPath();
-  map.path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-  ctx.stroke();
-  ctx.strokeStyle = '#a4d3ad'; ctx.lineWidth = 26;
-  ctx.beginPath();
-  map.path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-  ctx.stroke();
+  for (const path of map.paths) drawOnePath(ctx, path);
 }
 
 // 建造模式下：淡顯所有可蓋格，並把滑鼠所在格標綠(可蓋)/紅(不可)

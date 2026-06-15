@@ -6,7 +6,7 @@ import { BALANCE } from '../data/balance.js';
 
 // 地雷塔升級/分支改變 range 後，重算佈雷點(否則 range 升級是死數值)
 function refreshMineSlots(t, state) {
-  if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, state.map.path, 26);
+  if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, state.map.paths, 26);
 }
 
 export function initBuildMenu(state) {

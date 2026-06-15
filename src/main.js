@@ -47,7 +47,9 @@ function update(dt) {
   if (s.spawnQueue.length > 0) {
     s.spawnTimer -= dt;
     if (s.spawnTimer <= 0) {
-      s.enemies.push(spawnEnemy(s.spawnQueue.shift(), s.map));
+      const pi = s.spawnCount % s.map.paths.length;
+      s.enemies.push(spawnEnemy(s.spawnQueue.shift(), s.map, pi));
+      s.spawnCount++;
       s.spawnTimer = BALANCE.endless.spawnGap;
     }
   }
@@ -159,8 +161,8 @@ canvas.addEventListener('click', () => {
         t.cellKey = key;
         s.towers.push(t);
         s.occupiedCells.add(key);
-        if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.path);
-        if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, s.map.path, 26);
+        if (t.kind === 'barracks') t.rally = nearestPointOnPath(t.x, t.y, s.map.paths);
+        if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, s.map.paths, 26);
         s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
         refreshBuildButtons(s);
       }
