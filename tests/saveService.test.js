@@ -24,3 +24,18 @@ test('只有更好（波數高）才覆蓋', () => {
   s.submit({ wave: 10, time: 60, score: 200 });
   assert.equal(s.getBest().wave, 10);
 });
+test('無檔時 loadProfile 給預設', () => {
+  const s = createSaveService(fakeStorage());
+  const p = s.loadProfile();
+  assert.equal(p.tickets, 0);
+  assert.deepEqual(p.unlocked, []);
+  assert.equal(p.lastLogin, null);
+});
+test('saveProfile/loadProfile 往返', () => {
+  const st = fakeStorage(); const s = createSaveService(st);
+  s.saveProfile({ tickets: 2, unlocked: ['dragon_whelp'], lastLogin: '2026-06-15' });
+  const p = createSaveService(st).loadProfile();
+  assert.equal(p.tickets, 2);
+  assert.deepEqual(p.unlocked, ['dragon_whelp']);
+  assert.equal(p.lastLogin, '2026-06-15');
+});

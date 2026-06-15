@@ -1,4 +1,5 @@
 const KEY = 'laststand.endless.best';
+const PROFILE_KEY = 'laststand.profile';
 
 export function createSaveService(storage = globalThis.localStorage) {
   return {
@@ -20,5 +21,12 @@ export function createSaveService(storage = globalThis.localStorage) {
       }
       return false;
     },
+    loadProfile() {
+      const raw = storage ? storage.getItem(PROFILE_KEY) : null;
+      const def = { tickets: 0, unlocked: [], lastLogin: null };
+      if (!raw) return def;
+      try { return { ...def, ...JSON.parse(raw) }; } catch { return def; }
+    },
+    saveProfile(p) { if (storage) storage.setItem(PROFILE_KEY, JSON.stringify(p)); },
   };
 }
