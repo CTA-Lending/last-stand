@@ -12,6 +12,7 @@ export function spawnProjectile(tower, target) {
     splash: tower.splash, effect: tower.effect || null,
     color: tower.color, alive: true, chain: tower.chain || null,
     polymorph: tower.polymorph || null,
+    trail: [],
   };
   if (tower.pierce) {
     const d = dist(tower.x, tower.y, target.x, target.y) || 1;
@@ -28,6 +29,8 @@ export function updateProjectile(p, enemies, dt, now) {
   if (p.pierce) return updatePierce(p, enemies, dt, now);
   const target = enemies.find(e => e.id === p.targetId && e.alive);
   if (!target) { p.alive = false; return null; }
+  // 拖尾記錄
+  if (p.trail) { p.trail.push({ x: p.x, y: p.y }); if (p.trail.length > 5) p.trail.shift(); }
   const d = dist(p.x, p.y, target.x, target.y);
   const move = p.speed * dt;
   if (d <= move) {
@@ -62,6 +65,8 @@ export function updateProjectile(p, enemies, dt, now) {
 }
 
 function updatePierce(p, enemies, dt, now) {
+  // 拖尾記錄（穿透彈）
+  if (p.trail) { p.trail.push({ x: p.x, y: p.y }); if (p.trail.length > 5) p.trail.shift(); }
   p.x += p.dx * p.speed * dt;
   p.y += p.dy * p.speed * dt;
   p.traveled += p.speed * dt;

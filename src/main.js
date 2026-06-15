@@ -4,7 +4,7 @@ import { BALANCE } from './data/balance.js';
 import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
-import { updateParticles, burst, spark, floatText, flash } from './render/particles.js';
+import { updateParticles, burst, spark, floatText, flash, motes } from './render/particles.js';
 import { buildWave, minionSpec } from './systems/endlessDirector.js';
 import { applyEnemyAbilities } from './systems/enemyAbility.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
@@ -158,7 +158,7 @@ function update(dt) {
           spark(hit.nodes[n - 1].x, hit.nodes[n - 1].y, hit.nodes[n].x, hit.nodes[n].y, p.color);
       }
       burst(hit.x, hit.y, p.color, 7);
-      floatText(hit.x, hit.y - 6, '' + Math.round(p.damage), p.color);
+      floatText(hit.x, hit.y - 6, '' + Math.round(p.damage), p.color, Math.min(22, 12 + p.damage * 0.06));
       flash(hit.x, hit.y, p.color, 16);
     }
     if (!p.alive) s.projectiles.splice(i, 1);
@@ -167,15 +167,18 @@ function update(dt) {
     const wasAlive = e.alive;
     updateEnemy(e, s.map, dt, s.now);
     if (wasAlive && !e.alive) {
+      e.deathT = 0.14;
       if (e.reachedEnd) { s.economy.loseLife(1); }
       else {
         s.economy.earn(e.bounty); s.economy.addScore(e.boss ? 100 : 10);
         burst(e.x, e.y, e.color, e.boss ? 28 : 12);
         if (e.boss) { s.shake = 9; flash(e.x, e.y, e.color, 26); }
+        else { motes(e.x, e.y); }
       }
     }
   }
-  s.enemies = s.enemies.filter(e => e.alive || e.hitFlash > 0);
+  for (const e of s.enemies) if (!e.alive && e.deathT > 0) e.deathT -= dt;
+  s.enemies = s.enemies.filter(e => e.alive || e.hitFlash > 0 || e.deathT > 0);
   updateParticles(dt);
 
   // 戰役過關：撐過最後一波且全部清空

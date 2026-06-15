@@ -22,8 +22,23 @@ export function burst(x, y, color, count = 8, speed = 90) {
   }
 }
 
-export function floatText(x, y, text, color) {
-  texts.push({ x: x + (Math.random() * 8 - 4), y, text, color, life: 0.8, vy: -34 });
+// 金色淨化游塵：向上飄動
+export function motes(x, y) {
+  for (let i = 0; i < 8; i++) {
+    const p = obtain();
+    p.x = x + (Math.random() * 20 - 10);
+    p.y = y + (Math.random() * 10 - 5);
+    p.vx = (Math.random() * 24 - 12);
+    p.vy = -(18 + Math.random() * 28); // 向上
+    p.life = 0.55 + Math.random() * 0.3; p.maxLife = p.life;
+    p.color = '#ffe09a'; p.r = 1.5 + Math.random() * 1.5;
+    p.isMote = true; // 低重力旗標
+    active.push(p);
+  }
+}
+
+export function floatText(x, y, text, color, size) {
+  texts.push({ x: x + (Math.random() * 8 - 4), y, text, color, life: 0.8, vy: -34, size: size || 14 });
 }
 export function flash(x, y, color, r = 14) {
   flashes.push({ x, y, color, r, life: 0.18, maxLife: 0.18 });
@@ -34,7 +49,9 @@ export function updateParticles(dt) {
     const p = active[i];
     p.life -= dt;
     if (p.life <= 0) { active.splice(i, 1); pool.push(p); continue; }
-    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 140 * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    // 游塵低重力；普通粒子正常重力
+    p.vy += (p.isMote ? 18 : 140) * dt;
   }
   for (let i = sparks.length - 1; i >= 0; i--) {
     sparks[i].life -= dt;
@@ -45,15 +62,14 @@ export function updateParticles(dt) {
 }
 
 export function drawParticles(ctx) {
+  // 加法混合：burst 粒子 + flash 圓
+  ctx.globalCompositeOperation = 'lighter';
   for (const p of active) {
-    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
-    ctx.fillStyle = p.color;
+    const lifeRatio = p.life / p.maxLife;
+    ctx.globalAlpha = Math.max(0, lifeRatio);
+    // 接近消逝時白熱化
+    ctx.fillStyle = lifeRatio < 0.4 ? '#fff' : p.color;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-  }
-  for (const s of sparks) {
-    ctx.globalAlpha = Math.max(0, s.life / s.maxLife);
-    ctx.strokeStyle = s.color; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
   }
   for (const f of flashes) {
     const k = f.life / f.maxLife;
@@ -61,11 +77,22 @@ export function drawParticles(ctx) {
     ctx.fillStyle = f.color;
     ctx.beginPath(); ctx.arc(f.x, f.y, f.r * (1.4 - k), 0, Math.PI * 2); ctx.fill();
   }
+  ctx.globalCompositeOperation = 'source-over';
+  // 火花（source-over）
+  for (const s of sparks) {
+    ctx.globalAlpha = Math.max(0, s.life / s.maxLife);
+    ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
+  }
   ctx.globalAlpha = 1;
+  // 傷害數字：襯線字體 + 陰影
   for (const t of texts) {
     ctx.globalAlpha = Math.min(1, t.life / 0.4);
-    ctx.fillStyle = t.color; ctx.font = 'bold 13px system-ui';
+    ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 4;
+    ctx.fillStyle = t.color;
+    ctx.font = '700 ' + (t.size || 14) + 'px "Cinzel","Noto Serif TC",serif';
     ctx.textAlign = 'center'; ctx.fillText(t.text, t.x, t.y);
+    ctx.shadowBlur = 0;
   }
   ctx.globalAlpha = 1; ctx.textAlign = 'start';
 }

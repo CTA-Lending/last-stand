@@ -5,18 +5,21 @@ import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
 
 function drawOnePath(ctx, path) {
-  ctx.strokeStyle = '#caa472'; ctx.lineWidth = 34; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.strokeStyle = '#4a4358'; ctx.lineWidth = 34; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
-  ctx.strokeStyle = '#a4d3ad'; ctx.lineWidth = 26;
+  ctx.strokeStyle = '#332e42'; ctx.lineWidth = 26;
   ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
-  ctx.strokeStyle = 'rgba(120,95,60,0.35)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
+  ctx.strokeStyle = 'rgba(180,170,205,0.30)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
   ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke(); ctx.setLineDash([]);
 }
 
 function drawTerrain(ctx, map) {
-  ctx.fillStyle = '#cfe3c4'; ctx.fillRect(0, 0, map.width, map.height);
-  // 草地點綴(靜態散點，用座標決定不閃動)
-  ctx.fillStyle = 'rgba(140,180,130,0.18)';
+  const grad = ctx.createLinearGradient(0, 0, 0, map.height);
+  grad.addColorStop(0, '#1f2735');
+  grad.addColorStop(1, '#141a26');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, map.width, map.height);
+  // 玉光游塵（靜態散點，用座標決定不閃動）
+  ctx.fillStyle = 'rgba(95,211,178,0.09)';
   for (let gx = 16; gx < map.width; gx += 46) for (let gy = 22; gy < map.height; gy += 46) {
     const ox = (gx * 13 % 17) - 8, oy = (gy * 7 % 19) - 9;
     ctx.beginPath(); ctx.arc(gx + ox, gy + oy, 2.5, 0, Math.PI * 2); ctx.fill();
@@ -28,7 +31,7 @@ function drawTerrain(ctx, map) {
 function drawBuildGrid(ctx, state, mouse) {
   if (!state.selectedTowerType) return;
   const tile = state.map.tile;
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillStyle = 'rgba(95,211,178,0.08)';
   for (const key of state.buildableCells) {
     if (state.occupiedCells.has(key)) continue;
     const [col, row] = key.split(',').map(Number);
@@ -37,7 +40,7 @@ function drawBuildGrid(ctx, state, mouse) {
   const { col, row } = cellOf(mouse.x, mouse.y, tile);
   const key = cellKey(col, row);
   const ok = state.buildableCells.has(key) && !state.occupiedCells.has(key);
-  ctx.fillStyle = ok ? 'rgba(90,220,120,0.4)' : 'rgba(230,70,70,0.4)';
+  ctx.fillStyle = ok ? 'rgba(95,211,178,0.45)' : 'rgba(230,70,70,0.4)';
   ctx.fillRect(col * tile + 1, row * tile + 1, tile - 2, tile - 2);
 }
 
@@ -84,7 +87,9 @@ function drawTower(ctx, t) {
         for (let k = 0; k < 8; k++) { const g = k * Math.PI / 4; ctx.beginPath(); ctx.moveTo(Math.cos(g) * 11, Math.sin(g) * 11); ctx.lineTo(Math.cos(g) * 15, Math.sin(g) * 15); ctx.stroke(); }
       }
       ctx.fillStyle = rgba(c, 0.45); ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowColor = c; ctx.shadowBlur = 12;
       ctx.fillStyle = c; ctx.beginPath(); ctx.arc(0, 0, 6.5, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
       ctx.fillStyle = lighten(c, 80); ctx.beginPath(); ctx.arc(-2, -2, 2.6, 0, Math.PI * 2); ctx.fill();
     } else {
       ctx.rotate(a);
@@ -135,6 +140,17 @@ function drawSoldiers(ctx, towers) {
 }
 
 function drawEnemy(ctx, e, now) {
+  // 死亡彈跳：放大淡出的圓體
+  if (!e.alive && e.deathT > 0) {
+    const prog = 1 - e.deathT / 0.14; // 0→1 as it dies
+    const scale = 1 + prog * 0.4;
+    const alpha = e.deathT / 0.14;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = e.color;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * scale, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    return;
+  }
   const bob = Math.sin((now || 0) * 6 + e.id) * 1.5;
   const y = e.y + bob, r = e.radius;
   // 陰影
@@ -143,8 +159,10 @@ function drawEnemy(ctx, e, now) {
   // Boss 脈動光環
   if (e.boss) {
     const p = 0.5 + 0.5 * Math.sin((now || 0) * 4);
+    ctx.shadowColor = '#ffd35a'; ctx.shadowBlur = 10;
     ctx.strokeStyle = rgba('#ffd35a', 0.4 + 0.3 * p); ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(e.x, y, r + 5 + p * 2, 0, Math.PI * 2); ctx.stroke();
+    ctx.shadowBlur = 0;
   }
   // Boss 骨角(從身體後方探出)
   if (e.boss) {
@@ -195,12 +213,27 @@ function drawEnemy(ctx, e, now) {
 }
 
 function drawProjectile(ctx, p) {
+  // 拖尾殘影
+  if (p.trail && p.trail.length > 0) {
+    for (let i = 0; i < p.trail.length; i++) {
+      const tr = p.trail[i];
+      const alpha = (i / p.trail.length) * 0.4;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(tr.x, tr.y, 2.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  // 光暈外圈
   ctx.fillStyle = rgba(p.color, 0.3);
   ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2); ctx.fill();
+  // 白熱核心（發光）
+  ctx.shadowColor = p.color; ctx.shadowBlur = 10;
   ctx.fillStyle = p.color;
   ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
 function drawMinesAndAuras(ctx, towers) {
@@ -235,9 +268,15 @@ export function render(ctx, state, mouse) {
   for (const t of state.towers) drawTower(ctx, t);
   drawMinesAndAuras(ctx, state.towers);
   drawSoldiers(ctx, state.towers);
-  for (const e of state.enemies) if (e.alive) drawEnemy(ctx, e, state.now);
+  for (const e of state.enemies) if (e.alive || e.deathT > 0) drawEnemy(ctx, e, state.now);
   for (const p of state.projectiles) if (p.alive) drawProjectile(ctx, p);
   drawParticles(ctx);
+  // 暗角壓框
+  const w = state.map.width, h = state.map.height;
+  const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.35, w / 2, h / 2, w * 0.75);
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(1, 'rgba(8,6,14,0.45)');
+  ctx.fillStyle = vignette; ctx.fillRect(0, 0, w, h);
   drawRangePreview(ctx, state, mouse);
   if (state.selectedTower) {
     const t = state.selectedTower;
@@ -248,7 +287,7 @@ export function render(ctx, state, mouse) {
         ctx.beginPath(); ctx.arc(t.rally.x, t.rally.y, t.engageRange, 0, Math.PI * 2); ctx.stroke();
       }
     } else {
-      ctx.strokeStyle = 'rgba(255,255,0,0.7)'; ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(232,200,122,0.75)'; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
     }
   }
