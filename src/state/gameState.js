@@ -10,6 +10,7 @@ export function createGameState(map, opts = {}) {
     difficulty: opts.difficulty || 'normal',
     hpMult: opts.hpMult || 1,
     totalWaves: mode === 'campaign' ? (opts.totalWaves || 15) : Infinity,
+    level: opts.level || null,
     won: false,
     economy: createEconomy({ gold: BALANCE.startGold, lives: BALANCE.startLives }),
     enemies: [], towers: [], projectiles: [],

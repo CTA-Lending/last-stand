@@ -31,16 +31,22 @@ import { openLeaderboard } from './ui/leaderboard.js';
 import { runDiamonds } from './systems/account.js';
 import { openShop } from './ui/shop.js';
 import { openLoadout } from './ui/loadout.js';
+import { campaignWave } from './systems/campaign.js';
+import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
+import { openLevelSelect } from './ui/levelSelect.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
 let currentMode = 'endless';
 let currentDifficulty = 'normal';
+let currentLevel = null;
 
 function gameOpts() {
   if (currentMode !== 'campaign') return { mode: 'endless' };
   return { mode: 'campaign', difficulty: currentDifficulty,
-    totalWaves: BALANCE.campaign.totalWaves, hpMult: BALANCE.campaign.difficulty[currentDifficulty] };
+    totalWaves: currentLevel ? currentLevel.waves : BALANCE.campaign.totalWaves,
+    hpMult: BALANCE.campaign.difficulty[currentDifficulty],
+    level: currentLevel };
 }
 
 function campaignKey(s) {
@@ -96,7 +102,9 @@ function initGachaButton() {
 function maybeStartWave(s) {
   if (s.wave >= s.totalWaves) return false;     // 戰役達標不再開波(無盡為 Infinity 永遠開)
   s.wave += 1;
-  s.spawnQueue = buildWave(s.wave, s.hpMult);
+  s.spawnQueue = (s.mode === 'campaign' && s.level)
+    ? campaignWave(s.level, s.wave, s.hpMult)
+    : buildWave(s.wave, s.hpMult);
   s.spawnTimer = 0;
   s.waveTimer = BALANCE.endless.waveInterval;
   return true;
@@ -170,7 +178,16 @@ function update(dt) {
     const key = campaignKey(s);
     const time = Math.floor(s.economy.elapsed);
     save.submitCampaign(key, time);
-    const dia = awardDiamonds(s);
+    let dia;
+    if (s.level) {
+      // 章節關卡：獎勵固定鑽石、記錄通關、解鎖下一關
+      if (!profile.cleared.includes(s.level.id)) profile.cleared.push(s.level.id);
+      dia = s.level.diamond;
+      profile.diamonds += dia;
+      save.saveProfile(profile);
+    } else {
+      dia = awardDiamonds(s);
+    }
     showVictory(s, save.getCampaignBest(key), restart, enterLobby, dia);
   }
 
@@ -286,8 +303,12 @@ function initModePicker() {
   const bar = document.getElementById('modebar');
   bar.innerHTML = '模式';
   const mk = (label, on) => { const b = document.createElement('button'); b.textContent = label; b.onclick = on; bar.appendChild(b); return b; };
-  const endlessB = mk('無盡', () => { currentMode = 'endless'; initModePicker(); });
-  const campB = mk('戰役', () => { currentMode = 'campaign'; initModePicker(); });
+  const endlessB = mk('無盡', () => { currentMode = 'endless'; currentLevel = null; initModePicker(); });
+  const campB = mk('戰役', () => {
+    currentMode = 'campaign';
+    initModePicker();
+    openLevelSelect(profile, lv => { currentLevel = lv; startRun(); });
+  });
   endlessB.classList.toggle('active', currentMode === 'endless');
   campB.classList.toggle('active', currentMode === 'campaign');
   if (currentMode === 'campaign') {
@@ -316,7 +337,10 @@ function startRun() {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
   showInGameUI(true);
-  state = createGameState(currentMap, gameOpts());
+  const runMap = (currentMode === 'campaign' && currentLevel)
+    ? (currentLevel.map === 'map2' ? MAP2 : MAP1)
+    : currentMap;
+  state = createGameState(runMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
   state.loadout = profile.loadout.slice();
   initBuildMenu(state); initSpellBar(state, onCast);
