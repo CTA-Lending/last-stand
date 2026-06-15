@@ -54,6 +54,11 @@ test('profile 預設含 diamonds/owned(起始4)/loadout', () => {
   assert.deepEqual(p.owned, STARTER_TOWERS);
   assert.deepEqual(p.loadout, STARTER_TOWERS);
 });
+test('profile 預設含 cleared 空陣列', () => {
+  const s = createSaveService(fakeStorage());
+  const p = s.loadProfile();
+  assert.deepEqual(p.cleared, []);
+});
 test('戰役最佳取最短時間', () => {
   const st = fakeStorage(); const s = createSaveService(st);
   assert.equal(s.getCampaignBest('map1.normal'), null);

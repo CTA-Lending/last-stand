@@ -27,7 +27,7 @@ export function createSaveService(storage = globalThis.localStorage) {
     loadProfile() {
       const raw = storage ? storage.getItem(PROFILE_KEY) : null;
       const def = { tickets: 0, unlocked: [], lastLogin: null, diamonds: 0,
-        owned: [...STARTER_TOWERS], loadout: [...STARTER_TOWERS] };
+        owned: [...STARTER_TOWERS], loadout: [...STARTER_TOWERS], cleared: [] };
       if (!raw) return def;
       try {
         const p = { ...def, ...JSON.parse(raw) };
