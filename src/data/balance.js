@@ -15,5 +15,6 @@ export const BALANCE = {
     bossEvery: 5,
     bossHpMult: 8,
     bossBountyMult: 10,
+    demonBossEvery: 10,   // 第10/20/...波改出魔王(其餘boss波出死亡騎士)
   },
 };

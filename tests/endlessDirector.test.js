@@ -25,3 +25,17 @@ test('每隻怪有必要欄位', () => {
     assert.ok(e[k] !== undefined, `缺欄位 ${k}`);
   }
 });
+test('波次會切換到魔族池', () => {
+  // wave 4-6 為魔族段
+  const wave = buildWave(4);
+  const demonTypes = ['imp','succubus','warlock','infernal'];
+  assert.ok(wave.some(e => demonTypes.includes(e.type)));
+});
+test('第10波首領為魔王', () => {
+  const wave = buildWave(10);
+  assert.ok(wave.some(e => e.type === 'demonlord' && e.boss));
+});
+test('第5波首領為死亡騎士', () => {
+  const wave = buildWave(5);
+  assert.ok(wave.some(e => e.type === 'deathknight' && e.boss));
+});

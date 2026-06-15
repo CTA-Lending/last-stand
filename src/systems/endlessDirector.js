@@ -2,7 +2,14 @@ import { BALANCE } from '../data/balance.js';
 import { ENEMIES } from '../data/enemies.js';
 
 const E = BALANCE.endless;
-const POOL = ['skeleton', 'zombie', 'banshee'];
+
+const UNDEAD = ['skeleton', 'zombie', 'banshee'];
+const DEMON  = ['imp', 'succubus', 'warlock', 'infernal'];
+
+function poolFor(wave) {
+  // 每 3 波切換族別，讓玩家面對不同護甲組合
+  return Math.floor((wave - 1) / 3) % 2 === 0 ? UNDEAD : DEMON;
+}
 
 function scaledStats(wave, typeKey) {
   const def = ENEMIES[typeKey];
@@ -15,9 +22,10 @@ function scaledStats(wave, typeKey) {
 // 回傳這一波的 enemy 規格陣列（尚未含座標，spawn 時補）
 export function buildWave(wave) {
   const count = E.baseCount + (wave - 1) * E.countPerWave;
+  const pool = poolFor(wave);
   const list = [];
   for (let i = 0; i < count; i++) {
-    const typeKey = POOL[(wave - 1 + i) % POOL.length];
+    const typeKey = pool[(wave - 1 + i) % pool.length];
     const s = scaledStats(wave, typeKey);
     list.push({
       type: typeKey, armorType: ENEMIES[typeKey].armorType,
@@ -25,9 +33,11 @@ export function buildWave(wave) {
     });
   }
   if (wave % E.bossEvery === 0) {
-    const s = scaledStats(wave, 'deathknight');
+    const useDemon = wave % E.demonBossEvery === 0;
+    const bossType = useDemon ? 'demonlord' : 'deathknight';
+    const s = scaledStats(wave, bossType);
     list.push({
-      type: 'deathknight', armorType: 'heavy',
+      type: bossType, armorType: ENEMIES[bossType].armorType,
       hp: Math.round(s.hp * E.bossHpMult), maxHp: Math.round(s.hp * E.bossHpMult),
       speed: s.speed, bounty: Math.round(s.bounty * E.bossBountyMult), boss: true,
     });
