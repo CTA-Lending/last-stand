@@ -1,19 +1,38 @@
 let actx = null;
+let master = null;     // 總線：lowpass 削刺 → 主音量
+let sfxBus = null;     // 音效匯流（與環境床分開好調平衡）
+
+function ensureBus() {
+  if (!actx || master) return;
+  const lp = actx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 7200; lp.Q.value = 0.4; // 削掉 7k 以上的刺耳高頻
+  const m = actx.createGain(); m.gain.value = 0.9;                  // master ≈ -1dB
+  lp.connect(m); m.connect(actx.destination);
+  master = m;
+  const s = actx.createGain(); s.gain.value = 1; s.connect(lp);
+  sfxBus = s;
+}
 
 export function unlockAudio() {
   if (!actx) {
     try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch { actx = null; }
   }
+  ensureBus();
   if (actx && actx.state === 'suspended') actx.resume();
 }
 
+// 帶包絡的音色：快速 attack 避免爆音點擊，exp decay 自然收尾
 function blip(freq, dur, type, gain, slideTo) {
   if (!actx) return;
+  ensureBus();
   const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
   o.type = type; o.frequency.setValueAtTime(freq, t);
   if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
-  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur);
+  const atk = Math.min(0.012, dur * 0.25);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(gain, t + atk);     // attack
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur); // decay/release
+  o.connect(g); g.connect(sfxBus || actx.destination); o.start(t); o.stop(t + dur + 0.02);
 }
 
 let lastFire = 0;

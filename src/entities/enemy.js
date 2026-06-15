@@ -11,7 +11,7 @@ export function spawnEnemy(spec, map, pathIndex = 0) {
     x: path[0].x, y: path[0].y, seg: 0, pathIndex,
     hp: spec.hp, maxHp: spec.maxHp, armorType: spec.armorType,
     speed: spec.speed, bounty: spec.bounty, boss: spec.boss,
-    radius: def.radius, color: def.color,
+    radius: def.radius, color: def.color, form: def.form || null,
     alive: true, reachedEnd: false,
     slowUntil: 0, slowFactor: 1, dots: [], hitFlash: 0,
     blockedBy: null, atkCd: 0, dmg: def.dmg, atk: def.atk,

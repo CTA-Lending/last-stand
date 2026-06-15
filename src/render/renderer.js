@@ -1,5 +1,6 @@
 import { drawParticles, drawScreenEffects } from './particles.js';
 import { rgba, lighten } from './colors.js';
+import { hasBossForm, drawBossForm } from './bossForms.js';
 import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
@@ -159,6 +160,11 @@ function drawEnemy(ctx, e, now) {
   const bob = Math.sin((now || 0) * 6 + e.id) * 1.5;
   const spawnScale = e.spawnT > 0 ? (1 - e.spawnT / 0.12 * 0.6) : 1;
   const y = e.y + bob, r = e.radius * spawnScale;
+  // 受擊擠壓回彈（橫向略壓扁，物理凹陷感）
+  const hitK = e.hitFlash > 0 ? Math.min(1, e.hitFlash / 0.12) : 0;
+  const bossForm = e.boss && hasBossForm(e);
+  ctx.save();
+  if (hitK > 0) { ctx.translate(e.x, y); ctx.scale(1 + 0.12 * hitK, 1 - 0.14 * hitK); ctx.translate(-e.x, -y); }
   // 陰影
   ctx.fillStyle = 'rgba(0,0,0,0.16)';
   ctx.beginPath(); ctx.ellipse(e.x, e.y + r * 0.7, r * 0.9, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
@@ -170,22 +176,29 @@ function drawEnemy(ctx, e, now) {
     ctx.beginPath(); ctx.arc(e.x, y, r + 5 + p * 2, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  // Boss 骨角(從身體後方探出)
-  if (e.boss) {
+  // Boss 骨角(從身體後方探出；有專屬剪影者不畫，避免破壞輪廓)
+  if (e.boss && !bossForm) {
     ctx.fillStyle = '#e6dabd';
     ctx.beginPath(); ctx.moveTo(e.x - r * 0.55, y - r * 0.55); ctx.lineTo(e.x - r * 0.95, y - r * 1.3); ctx.lineTo(e.x - r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(e.x + r * 0.55, y - r * 0.55); ctx.lineTo(e.x + r * 0.95, y - r * 1.3); ctx.lineTo(e.x + r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
   }
   // 身體
   const flashAmt = e.hitFlash > 0 ? Math.min(80, e.hitFlash / 0.12 * 80) : 0;
-  ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : e.color;
-  ctx.beginPath(); ctx.arc(e.x, y, r, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : lighten(e.color, 40);
-  ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
-  // 重甲護板
-  if (e.armorType === 'heavy') { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
-  // 眼睛
+  const bodyColor = e.hitFlash > 0 ? lighten(e.color, flashAmt) : e.color;
+  const suppressFace = bossForm && (e.form === 'dread' || e.form === 'psyche');
+  if (bossForm) {
+    drawBossForm(ctx, e, e.x, y, r, bodyColor, now || 0);
+  } else {
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath(); ctx.arc(e.x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : lighten(e.color, 40);
+    ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
+  }
+  // 重甲護板（boss 專屬剪影不畫，避免橫條破壞輪廓）
+  if (e.armorType === 'heavy' && !bossForm) { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
+  // 眼睛 + 眉（自帶臉的剪影 dread/psyche 跳過）
   const ex = r * 0.34, ey = -r * 0.06;
+  if (!suppressFace) {
   ctx.fillStyle = '#fff';
   ctx.beginPath(); ctx.arc(e.x - ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.arc(e.x + ex, y + ey, r * 0.22, 0, Math.PI * 2); ctx.fill();
   if (e.boss) { ctx.shadowColor = '#ff5a4a'; ctx.shadowBlur = 6; }
@@ -198,8 +211,9 @@ function drawEnemy(ctx, e, now) {
   ctx.moveTo(e.x - ex - r * 0.26, y + ey - r * 0.34); ctx.lineTo(e.x - ex + r * 0.16, y + ey - r * 0.1);
   ctx.moveTo(e.x + ex + r * 0.26, y + ey - r * 0.34); ctx.lineTo(e.x + ex - r * 0.16, y + ey - r * 0.1);
   ctx.stroke(); ctx.lineCap = 'butt';
-  // Boss 獠牙嘴
-  if (e.boss) {
+  }
+  // Boss 獠牙嘴（自帶臉的跳過）
+  if (e.boss && !suppressFace) {
     ctx.strokeStyle = '#1a1320'; ctx.lineWidth = Math.max(1.4, r * 0.1);
     ctx.beginPath(); ctx.moveTo(e.x - r * 0.3, y + r * 0.36); ctx.lineTo(e.x - r * 0.08, y + r * 0.26); ctx.lineTo(e.x + r * 0.12, y + r * 0.4); ctx.lineTo(e.x + r * 0.32, y + r * 0.28); ctx.stroke();
   }
@@ -214,6 +228,7 @@ function drawEnemy(ctx, e, now) {
     ctx.beginPath(); ctx.arc(e.x, y, r + 3, 0, Math.PI * 2); ctx.stroke();
   }
   if (e.dots && e.dots.length) { ctx.fillStyle = '#7fe04a'; ctx.beginPath(); ctx.arc(e.x + r, y - r, 3, 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore(); // 結束受擊擠壓變形（血條不跟著壓）
   // 血條(圓角細條)
   const w = r * 2, ratio = Math.max(0, e.hp / e.maxHp), by = e.y - r - 9;
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(e.x - w / 2, by, w, 4);

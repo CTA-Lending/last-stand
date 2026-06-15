@@ -35,8 +35,11 @@ import { openLoadout } from './ui/loadout.js';
 import { campaignWave } from './systems/campaign.js';
 import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
 import { openLevelSelect } from './ui/levelSelect.js';
+import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
+// 大廳功能鈕統一加圖標（取代 emoji）
+function btnLabel(name, text) { return icon(name, 15) + ' ' + text; }
 let currentMap = MAP1;
 let currentMode = 'endless';
 let currentDifficulty = 'normal';
@@ -77,7 +80,7 @@ function initDexButton() {
   const bar = document.getElementById('dexbtn');
   bar.innerHTML = '';
   const b = document.createElement('button');
-  b.textContent = '🎴 圖鑑';
+  b.innerHTML = btnLabel('book', '圖鑑');
   b.onclick = () => openCollection(gachaUnlocked);
   bar.appendChild(b);
 }
@@ -86,7 +89,7 @@ function initLbButton() {
   const bar = document.getElementById('lbbtn');
   bar.innerHTML = '';
   const b = document.createElement('button');
-  b.textContent = '🏆 排行';
+  b.innerHTML = btnLabel('trophy', '排行');
   b.onclick = () => openLeaderboard(leaderboard, save, MAPS.map(m => m.name));
   bar.appendChild(b);
 }
@@ -95,7 +98,7 @@ function initGachaButton() {
   const bar = document.getElementById('gachabtn');
   bar.innerHTML = '';
   const b = document.createElement('button');
-  b.textContent = '🎰 轉蛋 (' + profile.tickets + '券)';
+  b.innerHTML = btnLabel('ticket', '轉蛋 (' + profile.tickets + '券)');
   b.onclick = () => openGacha({ profile, gachaUnlocked, save, onUnlock: () => { initGachaButton(); } });
   bar.appendChild(b);
 }
@@ -211,8 +214,12 @@ function update(dt) {
         s.economy.earn(e.bounty); s.economy.addScore(e.boss ? 100 : 10);
         burst(e.x, e.y, e.color, e.boss ? 28 : 12);
         if (e.boss) {
-          s.shake = 9; flash(e.x, e.y, e.color, 26);
-          s.hitStop = 0.06;
+          // Boss 死 = 全場淨化高潮（效果分級：全屏閃白只給 Boss）
+          s.shake = 10; flash(e.x, e.y, e.color, 30);
+          shockwave(e.x, e.y, '#ffe79a', 72);
+          motes(e.x, e.y); motes(e.x, e.y);
+          screenFlash('#fff', 0.12);
+          s.hitStop = 0.07;
           sfx.boss();
         } else {
           motes(e.x, e.y);
@@ -263,10 +270,19 @@ function draw() {
   refreshBuildAfford(state);
 }
 
-canvas.addEventListener('mousemove', e => {
+// 滑鼠 + 觸控統一用 Pointer Events。
+// canvas 在手機上以 CSS 等比縮放，座標必須換算回內部解析度(800×480)，否則點擊會偏。
+function setPointer(e) {
   const r = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top;
-});
+  mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+  mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+}
+canvas.addEventListener('pointermove', e => { setPointer(e); });
+canvas.addEventListener('pointerdown', e => {
+  // 觸控無 hover：按下即把塔/法術預覽定位到手指處，並擋掉頁面捲動與雙指縮放
+  setPointer(e);
+  if (isInRun() && (state.selectedTowerType || state.castMode)) e.preventDefault();
+}, { passive: false });
 
 function onCast(key) {
   const s = state;
@@ -314,8 +330,9 @@ function castFireRain(s, x, y) {
   s.castMode = null;
 }
 
-canvas.addEventListener('click', () => {
+canvas.addEventListener('pointerup', () => {
   const s = state;
+  if (!s || !isInRun()) return;
   if (s.castMode === 'firerain') { castFireRain(s, mouse.x, mouse.y); return; }
   // 點到已有塔 → 選取
   const hitTower = s.towers.find(t => dist(t.x, t.y, mouse.x, mouse.y) < 16);
@@ -352,16 +369,16 @@ function refreshLobbyInfo() {
 
 function initShopButtons() {
   const sb = document.getElementById('shopbtn'); sb.innerHTML = '';
-  const s = document.createElement('button'); s.textContent = '🏪 商城';
+  const s = document.createElement('button'); s.innerHTML = btnLabel('shop', '商城');
   s.onclick = () => openShop(profile, save, refreshLobbyInfo); sb.appendChild(s);
   const lb = document.getElementById('loadoutbtn'); lb.innerHTML = '';
-  const l = document.createElement('button'); l.textContent = '⚔️ 編隊';
+  const l = document.createElement('button'); l.innerHTML = btnLabel('swords', '編隊');
   l.onclick = () => openLoadout(profile, save, refreshLobbyInfo); lb.appendChild(l);
 }
 
 function initMapPicker() {
   const bar = document.getElementById('mapbar');
-  bar.innerHTML = '🗺️';
+  bar.innerHTML = '';
   MAPS.forEach(m => {
     const b = document.createElement('button');
     b.textContent = m.name;
@@ -399,7 +416,7 @@ function showInGameUI(show) {
   document.getElementById('hintbtn').style.display = show ? 'inline-block' : 'none';
 }
 
-const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用💰<b>金幣</b>升級　③ 撐過所有波次<br><small>快捷鍵：<b>1-9</b> 選塔 · <b>Esc</b> 取消 · <b>空白鍵</b> 暫停　（點擊關閉）</small>';
+const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用 <b>金幣</b> 升級　③ 撐過所有波次<br><small>快捷鍵：<b>1-9</b> 選塔 · <b>Esc</b> 取消 · <b>空白鍵</b> 暫停　（點擊關閉）</small>';
 function showHint() {
   const hint = document.getElementById('hint');
   if (!hint.innerHTML.trim()) hint.innerHTML = HINT_HTML;
@@ -482,8 +499,17 @@ function initRunControls() {
   ctrl.appendChild(forfeitBtn);
 }
 
+// 轉場遮幕：先全黑再淡出，遮住大廳↔副本的瞬切
+function fadeVeil() {
+  const v = document.getElementById('fadeveil');
+  if (!v) return;
+  v.classList.add('veil-on');
+  requestAnimationFrame(() => requestAnimationFrame(() => v.classList.remove('veil-on')));
+}
+
 function enterLobby() {
   _paused = false;
+  fadeVeil();
   stopAmbient();
   if (loop) loop.stop();
   document.getElementById('pause-overlay').style.display = 'none';
@@ -498,6 +524,7 @@ function startRun() {
   unlockAudio();
   startAmbient();
   _paused = false;
+  fadeVeil();
   document.getElementById('pause-overlay').style.display = 'none';
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';

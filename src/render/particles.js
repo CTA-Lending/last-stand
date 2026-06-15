@@ -12,14 +12,18 @@ export function spark(x1, y1, x2, y2, color) {
   sparks.push({ x1, y1, x2, y2, color, life: 0.18, maxLife: 0.18 });
 }
 
+const MAX_ACTIVE = 130; // 加法混合粒子上限：避免後期大招把整屏洗成死白 + 掉 FPS（智囊團指正）
+
 export function burst(x, y, color, count = 8, speed = 90) {
+  if (active.length > MAX_ACTIVE) count = Math.max(2, count >> 1);
   for (let i = 0; i < count; i++) {
+    if (active.length >= MAX_ACTIVE) break;
     const a = (Math.PI * 2 * i) / count + Math.random() * 0.5;
     const p = obtain();
     p.x = x; p.y = y; p.vx = Math.cos(a) * speed * (0.5 + Math.random());
     p.vy = Math.sin(a) * speed * (0.5 + Math.random());
-    p.life = 0.4 + Math.random() * 0.3; p.maxLife = p.life;
-    p.color = color; p.r = 2 + Math.random() * 2;
+    p.life = 0.26 + Math.random() * 0.2; p.maxLife = p.life; // 衰減加快(原 .4~.7 → .26~.46)
+    p.color = color; p.r = 2 + Math.random() * 2; p.isMote = false;
     active.push(p);
   }
 }
@@ -40,7 +44,7 @@ export function motes(x, y) {
 }
 
 export function floatText(x, y, text, color, size) {
-  texts.push({ x: x + (Math.random() * 8 - 4), y, text, color, life: 0.8, vy: -34, size: size || 14 });
+  texts.push({ x: x + (Math.random() * 8 - 4), y, text, color, life: 0.7, maxLife: 0.7, vy: -40, size: size || 17 });
 }
 export function flash(x, y, color, r = 14) {
   flashes.push({ x, y, color, r, life: 0.18, maxLife: 0.18 });
@@ -97,16 +101,24 @@ export function drawParticles(ctx) {
     ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); ctx.stroke();
   }
   ctx.globalAlpha = 1;
-  // 傷害數字：襯線字體 + 陰影
+  // 傷害數字：粗無襯線 + 純黑描邊（加法混合下襯線會糊成亂碼/隱形，智囊團指正）
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.lineJoin = 'round';
   for (const t of texts) {
-    ctx.globalAlpha = Math.min(1, t.life / 0.4);
-    ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 4;
+    const ml = t.maxLife || 0.7;
+    const k = t.life / ml;
+    // 進場 0→0.2s 彈一下放大，再淡出
+    const pop = k > 0.78 ? 1 + (k - 0.78) / 0.22 * 0.28 : 1;
+    ctx.globalAlpha = Math.min(1, k / 0.35);
+    const sz = (t.size || 17) * pop;
+    ctx.font = '900 ' + sz + 'px "Noto Sans TC","Arial Black",sans-serif';
+    ctx.lineWidth = Math.max(3, sz * 0.18);
+    ctx.strokeStyle = 'rgba(0,0,0,.92)';
+    ctx.strokeText(t.text, t.x, t.y);
     ctx.fillStyle = t.color;
-    ctx.font = '700 ' + (t.size || 14) + 'px "Cinzel","Noto Serif TC",serif';
-    ctx.textAlign = 'center'; ctx.fillText(t.text, t.x, t.y);
-    ctx.shadowBlur = 0;
+    ctx.fillText(t.text, t.x, t.y);
   }
-  ctx.globalAlpha = 1; ctx.textAlign = 'start';
+  ctx.globalAlpha = 1; ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
 }
 
 export function drawScreenEffects(ctx, w, h) {
