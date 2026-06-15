@@ -28,6 +28,8 @@ import { createLocalLeaderboard } from './systems/leaderboard.js';
 import { LEADERBOARD_SEED } from './data/leaderboardSeed.js';
 import { openLeaderboard } from './ui/leaderboard.js';
 import { runDiamonds } from './systems/account.js';
+import { openShop } from './ui/shop.js';
+import { openLoadout } from './ui/loadout.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
 let currentMap = MAP1;
@@ -244,6 +246,19 @@ canvas.addEventListener('click', () => {
   s.selectedTower = null; showTowerPanel(s);
 });
 
+function refreshLobbyInfo() {
+  const d = document.getElementById('dia-count'); if (d) d.textContent = profile.diamonds;
+}
+
+function initShopButtons() {
+  const sb = document.getElementById('shopbtn'); sb.innerHTML = '';
+  const s = document.createElement('button'); s.textContent = '🏪 商城';
+  s.onclick = () => openShop(profile, save, refreshLobbyInfo); sb.appendChild(s);
+  const lb = document.getElementById('loadoutbtn'); lb.innerHTML = '';
+  const l = document.createElement('button'); l.textContent = '⚔️ 編隊';
+  l.onclick = () => openLoadout(profile, save, refreshLobbyInfo); lb.appendChild(l);
+}
+
 function initMapPicker() {
   const bar = document.getElementById('mapbar');
   bar.innerHTML = '🗺️';
@@ -283,7 +298,7 @@ function enterLobby() {
   document.getElementById('lobby').style.display = 'flex';
   document.getElementById('overlay').style.display = 'none';
   showInGameUI(false);
-  initModePicker(); initMapPicker();
+  initModePicker(); initMapPicker(); refreshLobbyInfo();
 }
 
 function startRun() {
@@ -305,7 +320,7 @@ function restart() {
 
 function boot() {
   loop = createLoop({ update, render: draw });
-  initGachaButton(); initDexButton(); initLbButton();
+  initGachaButton(); initDexButton(); initLbButton(); initShopButtons();
   document.getElementById('enterRun').onclick = () => startRun();
   enterLobby();
 }
