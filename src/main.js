@@ -1,4 +1,4 @@
-import { sfx, unlockAudio, startAmbient, stopAmbient } from './render/audio.js';
+import { sfx, unlockAudio, startAmbient, stopAmbient, setMuted, isMuted } from './render/audio.js';
 import { MAP1 } from './data/map1.js';
 import { MAP2 } from './data/map2.js';
 import { BALANCE } from './data/balance.js';
@@ -223,7 +223,10 @@ function update(dt) {
     if (t.upgrading <= 0) {
       t.upgrading = 0;
       const apply = t._upApply; t._upApply = null;
-      if (apply) { apply(); burst(t.x, t.y, '#ffe09a', 14); flash(t.x, t.y, '#ffe09a', 18); }
+      if (apply) {
+        apply(); burst(t.x, t.y, '#ffe09a', 14); flash(t.x, t.y, '#ffe09a', 18);
+        if (s.selectedTower === t) showTowerPanel(s); // 升級完成 → 刷新面板，不再卡「升級中」
+      }
     }
   }
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
@@ -568,8 +571,19 @@ function initRunControls() {
     }
   };
 
+  // 🔇 音效開關（預設靜音）
+  const soundBtn = document.createElement('button');
+  soundBtn.textContent = isMuted() ? '🔇 音效' : '🔊 音效';
+  soundBtn.title = '開啟 / 關閉 音樂與音效';
+  soundBtn.onclick = () => {
+    const m = setMuted(!isMuted());
+    soundBtn.textContent = m ? '🔇 音效' : '🔊 音效';
+    if (!m) { unlockAudio(); if (isInRun()) startAmbient(); }
+  };
+
   ctrl.appendChild(earlyBtn);
   ctrl.appendChild(pauseBtn);
+  ctrl.appendChild(soundBtn);
   ctrl.appendChild(forfeitBtn);
 }
 

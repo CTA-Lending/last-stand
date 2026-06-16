@@ -1,6 +1,14 @@
 let actx = null;
 let master = null;     // 總線：lowpass 削刺 → 主音量
 let sfxBus = null;     // 音效匯流（與環境床分開好調平衡）
+let muted = true;      // 預設靜音（CEO 要求拿掉音樂/音效），可用 HUD 喇叭鈕開回來
+
+export function isMuted() { return muted; }
+export function setMuted(v) {
+  muted = !!v;
+  if (muted) stopAmbient();
+  return muted;
+}
 
 function ensureBus() {
   if (!actx || master) return;
@@ -23,7 +31,7 @@ export function unlockAudio() {
 
 // 帶包絡的音色：快速 attack 避免爆音點擊，exp decay 自然收尾
 function blip(freq, dur, type, gain, slideTo) {
-  if (!actx) return;
+  if (!actx || muted) return;
   ensureBus();
   const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
   o.type = type; o.frequency.setValueAtTime(freq, t);
@@ -40,7 +48,7 @@ let lastFire = 0;
 let ambientNodes = null;
 
 export function startAmbient() {
-  if (!actx || ambientNodes) return;
+  if (!actx || ambientNodes || muted) return;
   try {
     const t = actx.currentTime;
     const filter = actx.createBiquadFilter();
