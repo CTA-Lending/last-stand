@@ -16,13 +16,11 @@ export function getUserName() { return _user ? _user.name : null; }
 // 玩家登入後寫進 Firestore users/{uid}（供管理者後台統計用戶數）
 async function recordUser(u) {
   if (!_db || !_fsMod) return;
-  try {
-    const ref = _fsMod.doc(_db, 'users', u.uid);
-    const snap = await _fsMod.getDoc(ref);
-    const data = { email: u.email || '', name: u.displayName || u.email || '', lastLogin: _fsMod.serverTimestamp() };
-    if (!snap.exists()) data.createdAt = _fsMod.serverTimestamp(); // createdAt 只在首次寫(供「今日新增」統計)
-    await _fsMod.setDoc(ref, data, { merge: true });
-  } catch (e) { console.warn('[auth] 記錄用戶失敗(可能 Firestore 未啟用)', e); }
+  const ref = _fsMod.doc(_db, 'users', u.uid);
+  const data = { email: u.email || '', name: u.displayName || u.email || '', lastLogin: _fsMod.serverTimestamp() };
+  // 嘗試判斷是否首次(供「今日新增」)；若規則未開放讀自己則跳過，不影響記錄
+  try { const snap = await _fsMod.getDoc(ref); if (!snap.exists()) data.createdAt = _fsMod.serverTimestamp(); } catch {}
+  try { await _fsMod.setDoc(ref, data, { merge: true }); } catch (e) { console.warn('[auth] 記錄用戶失敗(可能 Firestore 未啟用)', e); }
 }
 
 async function ensureFirebase() {
