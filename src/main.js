@@ -176,6 +176,7 @@ async function syncCloud() {
       profile.owned = [...new Set([...(profile.owned || []), ...(c.owned || [])])];
       if (c.loadout && c.loadout.length) profile.loadout = c.loadout.filter(t => profile.owned.includes(t));
       profile.cleared = [...new Set([...(profile.cleared || []), ...(c.cleared || [])])];
+      profile.hellCleared = [...new Set([...(profile.hellCleared || []), ...(c.hellCleared || [])])];
       profile.seenTutorial = profile.seenTutorial || c.seenTutorial;
       for (const t of profile.owned) gachaUnlocked.add(t);
       baseSave.saveProfile(profile);
@@ -369,17 +370,22 @@ function update(dt) {
     const key = campaignKey(s);
     const time = Math.floor(s.economy.elapsed);
     save.submitCampaign(key, time);
-    let dia;
+    let dia, ticketBonus = 0;
     if (s.level) {
-      // 章節關卡：獎勵固定鑽石、記錄通關、解鎖下一關
+      // 章節關卡：獎勵鑽石、記錄通關、解鎖下一關
       if (!profile.cleared.includes(s.level.id)) profile.cleared.push(s.level.id);
       dia = campaignReward(s.level.diamond, s.difficulty); // 難度倍率：普通×1/英雄×2/地獄×3.5
       profile.diamonds += dia;
+      // 地獄難度「首次」通關該關 → 送一張轉蛋券
+      if (s.difficulty === 'hell') {
+        if (!profile.hellCleared) profile.hellCleared = [];
+        if (!profile.hellCleared.includes(s.level.id)) { profile.hellCleared.push(s.level.id); profile.tickets += 1; ticketBonus = 1; }
+      }
       save.saveProfile(profile);
     } else {
       dia = awardDiamonds(s);
     }
-    showVictory(s, save.getCampaignBest(key), restart, enterLobby, dia);
+    showVictory(s, save.getCampaignBest(key), restart, enterLobby, dia, ticketBonus);
   }
 
   if (s.economy.isDead() && !s.over) {
@@ -708,7 +714,7 @@ function enterLobby() {
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
   showInGameUI(false);
-  initModePicker(); refreshLobbyInfo();
+  initModePicker(); refreshLobbyInfo(); initGachaButton();
 }
 
 function startRun() {

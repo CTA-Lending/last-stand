@@ -4,7 +4,7 @@ import { getFs, getUid, getUserName } from './login.js';
 
 const PROFILE_FIELDS = (p) => ({
   diamonds: p.diamonds || 0, tickets: p.tickets || 0,
-  owned: p.owned || [], loadout: p.loadout || [], cleared: p.cleared || [],
+  owned: p.owned || [], loadout: p.loadout || [], cleared: p.cleared || [], hellCleared: p.hellCleared || [],
   seenTutorial: !!p.seenTutorial,
 });
 

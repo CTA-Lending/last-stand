@@ -16,7 +16,7 @@ export function updateHud(state) {
   }
 }
 
-export function showVictory(state, bestTime, onRestart, onLobby, diamonds = 0) {
+export function showVictory(state, bestTime, onRestart, onLobby, diamonds = 0, ticketBonus = 0) {
   const el = document.getElementById('overlay');
   const t = Math.floor(state.economy.elapsed);
   el.innerHTML = `<div class="panel">
@@ -25,6 +25,7 @@ export function showVictory(state, bestTime, onRestart, onLobby, diamonds = 0) {
     <p>通關時間 <b>${t}s</b> · ⭐${state.economy.score}</p>
     <p class="best">最佳：${bestTime != null ? bestTime + 's' : t + 's'}</p>
     <p>獲得 💎${diamonds} <span style="color:var(--dim);font-size:13px">（難度 ×${DIFFICULTY_MULT[state.difficulty] || 1}）</span></p>
+    ${ticketBonus > 0 ? `<p style="color:var(--gold-b)">🎟️ 地獄首通獎勵：+${ticketBonus} 轉蛋券！</p>` : ''}
     <button id="restart">再來一局</button>
     <button id="lobby-btn">回大廳</button></div>`;
   el.style.display = 'flex';
