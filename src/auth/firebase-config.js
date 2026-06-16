@@ -10,11 +10,16 @@
 //
 // 註：這些值是前端公開值（apiKey 不是密鑰，靠 Authorized domains + 安全規則保護），放 repo 沒問題。
 
-export const AUTH_ENABLED = false;
+// 等下面兩步在 Firebase Console 做完（啟用 Google 登入 + 授權網域加 cta-lending.github.io），
+// 我會把 AUTH_ENABLED 改成 true 並 push 開通。
+export const AUTH_ENABLED = true;
 
 export const FIREBASE_CONFIG = {
-  apiKey: 'PASTE_API_KEY',
-  authDomain: 'PASTE_PROJECT.firebaseapp.com',
-  projectId: 'PASTE_PROJECT_ID',
-  appId: 'PASTE_APP_ID',
+  apiKey: 'AIzaSyBPKSH_hrDBlZGyJ4EVVjr11Ao5nlzDlQY',
+  authDomain: 'last-stand-game-1bee5.firebaseapp.com',
+  projectId: 'last-stand-game-1bee5',
+  storageBucket: 'last-stand-game-1bee5.firebasestorage.app',
+  messagingSenderId: '741804597440',
+  appId: '1:741804597440:web:8d9f911290603058bd4d25',
+  measurementId: 'G-K9X435W07H',
 };
