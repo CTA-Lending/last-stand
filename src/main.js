@@ -426,9 +426,9 @@ function initModePicker() {
   const mk = (label, on) => { const b = document.createElement('button'); b.textContent = label; b.onclick = on; bar.appendChild(b); return b; };
   const endlessB = mk('無盡', () => { currentMode = 'endless'; currentLevel = null; initModePicker(); });
   const campB = mk('戰役', () => {
+    // 只切到戰役模式並顯示難度選項；選關卡改由「進入副本」開啟，先選難度再進關
     currentMode = 'campaign';
     initModePicker();
-    openLevelSelect(profile, lv => { currentLevel = lv; startRun(); });
   });
   endlessB.classList.toggle('active', currentMode === 'endless');
   campB.classList.toggle('active', currentMode === 'campaign');
@@ -446,6 +446,23 @@ function showInGameUI(show) {
   document.getElementById('spellbar').style.display = show ? 'flex' : 'none';
   document.getElementById('hud-controls').style.display = show ? 'inline-flex' : 'none';
   document.getElementById('hintbtn').style.display = show ? 'inline-block' : 'none';
+  // 大廳隱藏頂部數據列（全是 0，且會與大廳面板重疊）；遊戲中才顯示
+  document.getElementById('topbar').style.display = show ? 'flex' : 'none';
+  const rt = document.getElementById('runtitle');
+  if (rt) rt.style.display = show ? 'block' : 'none';
+}
+
+// 遊戲中左上角顯示「目前正在打什麼關卡」
+function setRunTitle() {
+  const el = document.getElementById('runtitle');
+  if (!el) return;
+  if (currentMode === 'campaign' && currentLevel) {
+    const diff = { normal: '普通', hero: '英雄', hell: '地獄' }[currentDifficulty] || '';
+    el.innerHTML = `${currentLevel.name}<small>戰役 · ${diff}難度 · 共 ${currentLevel.waves} 波</small>`;
+  } else {
+    const mapName = (MAPS.find(m => m.map === currentMap) || {}).name || '';
+    el.innerHTML = `無盡求生<small>${mapName} · 撐越久越強</small>`;
+  }
 }
 
 const HINT_HTML = '① 點下方選塔 → 點地圖空地放置　② 用 <b>金幣</b> 升級　③ 撐過所有波次<br><small>快捷鍵：<b>1-9</b> 選塔 · <b>Esc</b> 取消 · <b>空白鍵</b> 暫停　（點擊關閉）</small>';
@@ -561,6 +578,7 @@ function startRun() {
   document.getElementById('lobby').style.display = 'none';
   document.getElementById('overlay').style.display = 'none';
   showInGameUI(true);
+  setRunTitle();
   initRunControls();
   const runMap = (currentMode === 'campaign' && currentLevel)
     ? (currentLevel.map === 'map2' ? MAP2 : MAP1)
@@ -593,7 +611,15 @@ function isInRun() {
 function boot() {
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton(); setupLogin();
-  document.getElementById('enterRun').onclick = () => { unlockAudio(); startRun(); };
+  document.getElementById('enterRun').onclick = () => {
+    unlockAudio();
+    // 戰役：先開關卡選單（難度已在大廳選好）；無盡：直接開打
+    if (currentMode === 'campaign') {
+      openLevelSelect(profile, lv => { currentLevel = lv; startRun(); });
+    } else {
+      startRun();
+    }
+  };
   document.getElementById('hintbtn').onclick = showHint;
 
   window.addEventListener('keydown', e => {
