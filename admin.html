@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>守關者 · 管理者後台</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#120f1a; --panel:#221b33; --gold:#e8c87a; --gold-b:#ffe09a; --jade:#5fd3b2; --ink:#ece4d2; --dim:#9a92a8; --edge:rgba(232,200,122,.2); }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; color:var(--ink); font-family:"Noto Sans TC",sans-serif;
+    background:radial-gradient(1100px 560px at 50% -8%, #2a2140 0%, transparent 60%), var(--bg);
+    display:flex; align-items:flex-start; justify-content:center; padding:30px 16px; }
+  .wrap{ width:100%; max-width:760px; }
+  h1{ font-family:"Cinzel","Noto Sans TC",serif; color:var(--gold-b); letter-spacing:.05em; font-size:26px; margin:0 0 4px; }
+  .sub{ color:var(--dim); font-size:13px; margin-bottom:22px; }
+  .card{ background:linear-gradient(180deg, rgba(40,33,58,.96), rgba(26,21,40,.97)); border:1px solid var(--edge);
+    border-radius:16px; padding:22px 24px; box-shadow:0 20px 50px rgba(0,0,0,.5); margin-bottom:18px; }
+  .btn{ font-family:inherit; font-weight:700; color:#1c150d; background:linear-gradient(180deg,#f3d68f,#d6a94f);
+    border:none; border-radius:11px; padding:11px 22px; font-size:15px; cursor:pointer; }
+  .btn.ghost{ background:rgba(255,255,255,.06); color:var(--ink); border:1px solid var(--edge); }
+  .stat{ display:flex; gap:26px; flex-wrap:wrap; }
+  .stat .num{ font-size:44px; font-weight:900; color:var(--gold-b); font-variant-numeric:tabular-nums; line-height:1; }
+  .stat .lab{ color:var(--dim); font-size:12px; letter-spacing:.1em; text-transform:uppercase; margin-top:4px; }
+  table{ width:100%; border-collapse:collapse; margin-top:6px; }
+  th,td{ text-align:left; padding:9px 8px; border-bottom:1px solid rgba(255,255,255,.06); font-size:13px; }
+  th{ color:var(--gold); font-weight:700; }
+  td.num{ color:var(--dim); font-variant-numeric:tabular-nums; }
+  .muted{ color:var(--dim); font-size:13px; }
+  .err{ color:#ff8da0; font-size:13px; }
+  #me{ float:right; font-size:12px; color:var(--dim); }
+  a{ color:var(--jade); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏰 守關者 · 管理者後台</h1>
+  <div class="sub">玩家登入統計（Firebase · 與 CTA 會員中心完全隔離）</div>
+  <div id="root" class="card"><div class="muted">載入中…</div></div>
+  <div class="muted">遊戲：<a href="./index.html">cta-lending.github.io/last-stand</a></div>
+</div>
+
+<script type="module">
+import { FIREBASE_CONFIG } from './src/auth/firebase-config.js';
+const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
+const ADMIN_EMAIL = 'musictich2005@gmail.com';
+const root = document.getElementById('root');
+
+const appMod = await import(`${SDK}/firebase-app.js`);
+const authMod = await import(`${SDK}/firebase-auth.js`);
+const fs = await import(`${SDK}/firebase-firestore.js`);
+const app = appMod.initializeApp(FIREBASE_CONFIG);
+const auth = authMod.getAuth(app);
+const db = fs.getFirestore(app);
+
+function loginView() {
+  root.innerHTML = `<div class="muted" style="margin-bottom:14px">請用管理員 Google 帳號登入</div>
+    <button class="btn" id="login">用 Google 登入</button>`;
+  document.getElementById('login').onclick = async () => {
+    try { await authMod.signInWithPopup(auth, new authMod.GoogleAuthProvider()); }
+    catch (e) { root.insertAdjacentHTML('beforeend', `<div class="err">登入失敗：${e.code || e.message}</div>`); }
+  };
+}
+
+function denyView(email) {
+  root.innerHTML = `<div class="err">「${email}」不是管理員帳號。</div>
+    <button class="btn ghost" id="out" style="margin-top:12px">登出</button>`;
+  document.getElementById('out').onclick = () => authMod.signOut(auth);
+}
+
+function fmt(ts) { try { return ts && ts.toDate ? ts.toDate().toLocaleString('zh-TW', { hour12:false }) : '—'; } catch { return '—'; } }
+
+async function dashboard(email) {
+  root.innerHTML = `<span id="me">${email} · <a href="#" id="out">登出</a></span>
+    <div class="stat"><div><div class="num" id="cnt">…</div><div class="lab">總用戶數</div></div></div>
+    <div id="list" style="margin-top:20px" class="muted">讀取名單中…</div>`;
+  document.getElementById('out').onclick = (e) => { e.preventDefault(); authMod.signOut(auth); };
+  try {
+    const col = fs.collection(db, 'users');
+    const cnt = await fs.getCountFromServer(col);
+    document.getElementById('cnt').textContent = cnt.data().count;
+    const snap = await fs.getDocs(fs.query(col, fs.orderBy('lastLogin', 'desc'), fs.limit(200)));
+    let rows = '';
+    snap.forEach(d => { const u = d.data(); rows += `<tr><td>${u.name || '—'}</td><td class="num">${u.email || '—'}</td><td class="num">${fmt(u.lastLogin)}</td></tr>`; });
+    document.getElementById('list').innerHTML = snap.size
+      ? `<table><thead><tr><th>名稱</th><th>Email</th><th>最近登入</th></tr></thead><tbody>${rows}</tbody></table>`
+      : '<div class="muted">目前還沒有玩家登入。</div>';
+  } catch (e) {
+    document.getElementById('list').innerHTML = `<div class="err">讀取失敗：${e.code || e.message}<br>
+      （請確認 Firebase 已啟用 Firestore，且安全規則允許管理員讀取）</div>`;
+    document.getElementById('cnt').textContent = '!';
+  }
+}
+
+authMod.onAuthStateChanged(auth, (u) => {
+  if (!u) loginView();
+  else if ((u.email || '').toLowerCase() === ADMIN_EMAIL) dashboard(u.email);
+  else denyView(u.email);
+});
+</script>
+</body>
+</html>

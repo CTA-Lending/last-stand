@@ -4,10 +4,22 @@
 import { FIREBASE_CONFIG, AUTH_ENABLED } from './firebase-config.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
-let _auth = null, _authMod = null, _user = null, _onChange = null, _initPromise = null;
+let _auth = null, _authMod = null, _db = null, _fsMod = null, _user = null, _onChange = null, _initPromise = null;
 
 export function getUser() { return _user; }
 export function isAuthEnabled() { return AUTH_ENABLED; }
+
+// 玩家登入後寫進 Firestore users/{uid}（供管理者後台統計用戶數）
+async function recordUser(u) {
+  if (!_db || !_fsMod) return;
+  try {
+    await _fsMod.setDoc(_fsMod.doc(_db, 'users', u.uid), {
+      email: u.email || '', name: u.displayName || u.email || '',
+      lastLogin: _fsMod.serverTimestamp(),
+      createdAt: _fsMod.serverTimestamp(),  // merge:true → 已存在不覆蓋掉首登(由規則/或忽略)
+    }, { merge: true });
+  } catch (e) { console.warn('[auth] 記錄用戶失敗(可能 Firestore 未啟用)', e); }
+}
 
 async function ensureFirebase() {
   if (_auth) return _auth;
@@ -17,8 +29,10 @@ async function ensureFirebase() {
     _authMod = await import(`${SDK}/firebase-auth.js`);
     const app = appMod.initializeApp(FIREBASE_CONFIG);
     _auth = _authMod.getAuth(app);
+    try { _fsMod = await import(`${SDK}/firebase-firestore.js`); _db = _fsMod.getFirestore(app); } catch {}
     _authMod.onAuthStateChanged(_auth, (u) => {
       _user = u ? { name: u.displayName || u.email, email: u.email, uid: u.uid } : null;
+      if (u) recordUser(u);
       _onChange && _onChange(_user);
     });
     return _auth;

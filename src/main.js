@@ -107,7 +107,7 @@ function setupLogin() {
       const lo = document.getElementById('li-logout');
       if (lo) lo.onclick = () => logout();
     } else if (isAuthEnabled()) {
-      slot.innerHTML = '<button class="li-btn li-google" id="li-login">用 Google 登入</button><span class="li-hint">雲端保存進度</span>';
+      slot.innerHTML = '<button class="li-btn li-google" id="li-login">用 Google 登入</button><span class="li-hint">選填 · 雲端存進度；不登入也能直接玩</span>';
       const li = document.getElementById('li-login');
       if (li) li.onclick = () => signIn();
     } else {
