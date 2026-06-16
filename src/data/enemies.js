@@ -14,7 +14,7 @@ export const ENEMIES = {
   emo_aii: { name: '執愛之魔', form: 'lover',    armorType: 'heavy', hpMult: 1.5, speedMult: 0.8,  bountyMult: 1.5, radius: 18, color: '#d24a90', boss: true, dmg: 20, atk: 1.2, ability: { type: 'summon',        interval: 3.5, minion: 'xinmo' } },
   emo_wu:  { name: '憎惡之魔', form: 'loath',    armorType: 'heavy', hpMult: 2.2, speedMult: 0.7,  bountyMult: 1.7, radius: 20, color: '#5a1530', boss: true, dmg: 28, atk: 1.3, ability: { type: 'summon',        interval: 4,   minion: 'zhizhang' } },
   emo_xi:  { name: '狂喜之魔', form: 'manic',    armorType: 'light', hpMult: 1.2, speedMult: 1.0,  bountyMult: 1.5, radius: 17, color: '#e0b020', boss: true, dmg: 16, atk: 1.0, ability: { type: 'healAura',      radius: 100, hps: 30 } },
-  emo_yu:  { name: '貪欲之魔', form: 'glutton',  armorType: 'heavy', hpMult: 1.4, speedMult: 0.85, bountyMult: 1.5, radius: 18, color: '#c9a227', boss: true, dmg: 20, atk: 1.2, ability: { type: 'goldSteal',     interval: 2.5, amount: 12 } },
+  emo_yu:  { name: '渴欲之魔', form: 'glutton',  armorType: 'heavy', hpMult: 1.4, speedMult: 0.85, bountyMult: 1.5, radius: 18, color: '#c9a227', boss: true, dmg: 20, atk: 1.2, ability: { type: 'goldSteal',     interval: 2.5, amount: 12 } },
 
   // 六慾 精英 Boss
   yu_se:    { name: '色慾', form: 'serpent',  armorType: 'magic',  hpMult: 1.2, speedMult: 1.0,  bountyMult: 1.4, radius: 16, color: '#e07ab0', boss: true, dmg: 16, atk: 1.0, ability: { type: 'fearAura',      radius: 100 } },
@@ -22,5 +22,5 @@ export const ENEMIES = {
   yu_xiang: { name: '香慾', form: 'incense',  armorType: 'heavy',  hpMult: 1.5, speedMult: 0.8,  bountyMult: 1.4, radius: 17, color: '#9ac94a', boss: true, dmg: 22, atk: 1.2, ability: { type: 'slowTowerAura', radius: 110, factor: 0.55 } },
   yu_wei:   { name: '味慾', form: 'glutton',  armorType: 'heavy',  hpMult: 1.4, speedMult: 0.85, bountyMult: 1.4, radius: 17, color: '#d2843a', boss: true, dmg: 20, atk: 1.2, ability: { type: 'goldSteal',     interval: 3,   amount: 14 } },
   yu_chu:   { name: '觸慾', form: 'tentacle', armorType: 'flying', hpMult: 1.1, speedMult: 1.05, bountyMult: 1.4, radius: 15, color: '#b08fe0', boss: true, dmg: 0,  atk: 1.0, ability: { type: 'slowTowerAura', radius: 100, factor: 0.65 } },
-  yu_yi:    { name: '意慾', form: 'psyche',   armorType: 'magic',  hpMult: 1.3, speedMult: 0.95, bountyMult: 1.5, radius: 17, color: '#8f7fe0', boss: true, dmg: 18, atk: 1.1, ability: { type: 'summon',        interval: 3,   minion: 'yuanhun' } },
+  yu_yi:    { name: '法慾', form: 'psyche',   armorType: 'magic',  hpMult: 1.3, speedMult: 0.95, bountyMult: 1.5, radius: 17, color: '#8f7fe0', boss: true, dmg: 18, atk: 1.1, ability: { type: 'summon',        interval: 3,   minion: 'yuanhun' } },
 };
