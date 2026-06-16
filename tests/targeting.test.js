@@ -12,7 +12,7 @@ test('射程外不鎖定', () => {
   assert.equal(t, null);
 });
 test('不能打空時略過飛行', () => {
-  const t = selectTarget(tower, [enemy({ id: 1, x: 50, y: 0, armorType: 'flying' })]);
+  const t = selectTarget(tower, [enemy({ id: 1, x: 50, y: 0, flying: true })]);
   assert.equal(t, null);
 });
 test('first 選路徑最前（seg 大者）', () => {

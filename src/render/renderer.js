@@ -1,6 +1,7 @@
 import { drawParticles, drawScreenEffects } from './particles.js';
 import { rgba, lighten } from './colors.js';
 import { hasBossForm, drawBossForm } from './bossForms.js';
+import { ELEMENT_INFO } from '../data/attackMatrix.js';
 import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
@@ -232,8 +233,8 @@ function drawEnemy(ctx, e, now) {
     ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : lighten(e.color, 40);
     ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
   }
-  // 重甲護板（boss 專屬剪影不畫，避免橫條破壞輪廓）
-  if (e.armorType === 'heavy' && !bossForm) { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
+  // 重甲護板：土/金 元素(厚重/堅硬)顯示甲條（boss 專屬剪影不畫）
+  if ((e.armorType === 'earth' || e.armorType === 'metal') && !bossForm) { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
   // 眼睛 + 眉（自帶臉的剪影 dread/psyche 跳過）
   const ex = r * 0.34, ey = -r * 0.06;
   if (!suppressFace) {
@@ -256,7 +257,7 @@ function drawEnemy(ctx, e, now) {
     ctx.beginPath(); ctx.moveTo(e.x - r * 0.3, y + r * 0.36); ctx.lineTo(e.x - r * 0.08, y + r * 0.26); ctx.lineTo(e.x + r * 0.12, y + r * 0.4); ctx.lineTo(e.x + r * 0.32, y + r * 0.28); ctx.stroke();
   }
   // 飛行翼影
-  if (e.armorType === 'flying') {
+  if (e.flying) {
     ctx.strokeStyle = 'rgba(231,221,201,0.45)'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(e.x, y, r + 4, 0, Math.PI * 2); ctx.stroke();
   }
@@ -272,6 +273,14 @@ function drawEnemy(ctx, e, now) {
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(e.x - w / 2, by, w, 4);
   ctx.fillStyle = ratio > 0.5 ? '#5fd35f' : ratio > 0.25 ? '#f0c419' : '#e24b4a';
   ctx.fillRect(e.x - w / 2, by, w * ratio, 4);
+  // 五行元素色點（血條左端，標示護甲屬性）
+  const ei = ELEMENT_INFO[e.armorType];
+  if (ei) {
+    ctx.fillStyle = ei.color;
+    ctx.beginPath(); ctx.arc(e.x - w / 2 - 4, by + 2, 2.6, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(e.x - w / 2 - 4, by + 2, 2.6, 0, Math.PI * 2); ctx.stroke();
+  }
 }
 
 function drawProjectile(ctx, p) {

@@ -21,13 +21,13 @@ export function campaignWave(level, wave, hpMult = 1) {
     const typeKey = MINIONS[(wave - 1 + i) % MINIONS.length];
     const s = scaled(wave, typeKey);
     const hp = Math.round(s.hp * hpMult);
-    list.push({ type: typeKey, armorType: ENEMIES[typeKey].armorType, hp, maxHp: hp, speed: s.speed, bounty: s.bounty, boss: false });
+    list.push({ type: typeKey, armorType: ENEMIES[typeKey].armorType, flying: ENEMIES[typeKey].flying, hp, maxHp: hp, speed: s.speed, bounty: s.bounty, boss: false });
   }
   if (wave >= level.waves) {
     const b = ENEMIES[level.boss];
     const s = scaled(wave, level.boss);
     const hp = Math.round(s.hp * E.bossHpMult * hpMult);
-    list.push({ type: level.boss, armorType: b.armorType, hp, maxHp: hp, speed: s.speed,
+    list.push({ type: level.boss, armorType: b.armorType, flying: ENEMIES[level.boss].flying, hp, maxHp: hp, speed: s.speed,
       bounty: Math.round(s.bounty * E.bossBountyMult), boss: true, ability: b.ability || null });
   }
   return list;

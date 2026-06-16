@@ -9,7 +9,7 @@ export function spawnEnemy(spec, map, pathIndex = 0) {
   return {
     id: nextId++, type: spec.type,
     x: path[0].x, y: path[0].y, seg: 0, pathIndex,
-    hp: spec.hp, maxHp: spec.maxHp, armorType: spec.armorType,
+    hp: spec.hp, maxHp: spec.maxHp, armorType: spec.armorType, flying: spec.flying || false,
     speed: spec.speed, bounty: spec.bounty, boss: spec.boss,
     radius: def.radius, color: def.color, form: def.form || null,
     alive: true, reachedEnd: false,

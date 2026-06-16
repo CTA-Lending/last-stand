@@ -24,7 +24,7 @@ test('射程內地面敵被指派攔截、標記 blockedBy', () => {
 });
 test('飛行敵不被攔', () => {
   const b = barracks();
-  const e = enemy({ armorType: 'flying', x: 110, y: 100 });
+  const e = enemy({ flying: true, x: 110, y: 100 });
   updateBlocking(b, [e], 0.1, 0);
   assert.equal(e.blockedBy, null);
 });

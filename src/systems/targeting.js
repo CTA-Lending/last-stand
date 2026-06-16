@@ -7,7 +7,7 @@ export function inRange(tower, enemy) {
 export function selectTarget(tower, enemies) {
   const candidates = enemies.filter(e =>
     e.alive && !e.reachedEnd &&
-    (tower.canHitAir || e.armorType !== 'flying') &&
+    (tower.canHitAir || !e.flying) &&
     inRange(tower, e)
   );
   if (candidates.length === 0) return null;

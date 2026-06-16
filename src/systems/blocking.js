@@ -26,7 +26,7 @@ export function updateBlocking(b, enemies, dt, now) {
     if (!target) {
       let best = null, bd = b.engageRange;
       for (const e of enemies) {
-        if (!e.alive || e.reachedEnd || e.armorType === 'flying' || (e.blockedBy != null && e.blockedBy !== s.id)) continue;
+        if (!e.alive || e.reachedEnd || e.flying || (e.blockedBy != null && e.blockedBy !== s.id)) continue;
         const d = dist(s.x, s.y, e.x, e.y);
         if (d <= bd) { bd = d; best = e; }
       }

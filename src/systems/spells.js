@@ -1,5 +1,5 @@
 export const SPELLS = {
-  firerain: { name: '火雨', icon: '🔥', cooldown: 18, radius: 90, damage: 120, attackType: 'siege', targeted: true },
+  firerain: { name: '火雨', icon: '🔥', cooldown: 18, radius: 90, damage: 120, attackType: 'fire', targeted: true },
   frost:    { name: '寒冰術', icon: '❄️', cooldown: 25, duration: 3, targeted: false },
 };
 

@@ -1,6 +1,6 @@
 export const TOWERS = {
   elf_archer: {
-    name: '精靈神射手', faction: 'elf', attackType: 'physical', canHitAir: true,
+    name: '精靈神射手', faction: 'elf', attackType: 'wood', canHitAir: true,
     color: '#63992e', splash: 0,
     levels: [ { cost: 70, damage: 14, range: 120, fireRate: 1.4 }, { cost: 60, damage: 26, range: 135, fireRate: 1.6 } ],
     branches: [
@@ -9,7 +9,7 @@ export const TOWERS = {
     ],
   },
   dwarf_cannon: {
-    name: '矮人蒸汽火砲', faction: 'dwarf', attackType: 'siege', canHitAir: false,
+    name: '矮人蒸汽火砲', faction: 'dwarf', attackType: 'fire', canHitAir: false,
     color: '#b07a2f', splash: 42,
     levels: [ { cost: 95, damage: 26, range: 110, fireRate: 0.7 }, { cost: 90, damage: 46, range: 120, fireRate: 0.8 } ],
     branches: [
@@ -18,7 +18,7 @@ export const TOWERS = {
     ],
   },
   mage_arcane: {
-    name: '魔法師奧術塔', faction: 'mage', attackType: 'magic', canHitAir: true,
+    name: '魔法師奧術塔', faction: 'mage', attackType: 'water', canHitAir: true,
     color: '#7f77dd', splash: 0,
     levels: [ { cost: 90, damage: 20, range: 115, fireRate: 1.1 }, { cost: 85, damage: 36, range: 125, fireRate: 1.2 } ],
     branches: [
@@ -27,7 +27,7 @@ export const TOWERS = {
     ],
   },
   elf_druid: {
-    name: '精靈纏繞德魯伊', faction: 'elf', attackType: 'magic', canHitAir: true,
+    name: '精靈纏繞德魯伊', faction: 'elf', attackType: 'wood', canHitAir: true,
     requires: ['elf_archer'], diamond: 40,
     color: '#3bbf8f', splash: 0, effect: { slow: { factor: 0.5, duration: 2 } },
     levels: [ { cost: 80, damage: 6, range: 110, fireRate: 1.0 }, { cost: 70, damage: 10, range: 120, fireRate: 1.1 } ],
@@ -37,7 +37,7 @@ export const TOWERS = {
     ],
   },
   dwarf_mortar: {
-    name: '矮人燃燒投石', faction: 'dwarf', attackType: 'siege', canHitAir: false,
+    name: '矮人燃燒投石', faction: 'dwarf', attackType: 'fire', canHitAir: false,
     requires: ['dwarf_cannon'], diamond: 60,
     color: '#d8632f', splash: 48, effect: { dot: { dps: 10, duration: 3 } },
     levels: [ { cost: 120, damage: 22, range: 150, fireRate: 0.5 }, { cost: 110, damage: 40, range: 160, fireRate: 0.55 } ],
@@ -47,7 +47,7 @@ export const TOWERS = {
     ],
   },
   mage_chain: {
-    name: '連環閃電', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'], diamond: 80,
+    name: '連環閃電', faction: 'mage', attackType: 'metal', canHitAir: true, requires: ['mage_arcane'], diamond: 80,
     color: '#5bc8ff', splash: 0, chain: { count: 3, radius: 85, falloff: 0.65 },
     levels: [ { cost: 130, damage: 24, range: 130, fireRate: 1.0 }, { cost: 120, damage: 42, range: 140, fireRate: 1.1 } ],
     branches: [
@@ -56,7 +56,7 @@ export const TOWERS = {
     ],
   },
   elf_moonblade: {
-    name: '精靈月刃', faction: 'elf', attackType: 'physical', canHitAir: true, requires: ['elf_archer'], diamond: 70,
+    name: '精靈月刃', faction: 'elf', attackType: 'wood', canHitAir: true, requires: ['elf_archer'], diamond: 70,
     color: '#aef0c8', splash: 0, chain: { count: 2, radius: 75, falloff: 0.6 },
     levels: [ { cost: 110, damage: 20, range: 125, fireRate: 1.3 }, { cost: 100, damage: 34, range: 135, fireRate: 1.5 } ],
     branches: [
@@ -65,7 +65,7 @@ export const TOWERS = {
     ],
   },
   human_ballista: {
-    name: '人類十字弩', faction: 'human', attackType: 'physical', canHitAir: true, requires: ['human_barracks'], diamond: 80,
+    name: '人類十字弩', faction: 'human', attackType: 'metal', canHitAir: true, requires: ['human_barracks'], diamond: 80,
     color: '#cdb27a', splash: 0, pierce: 3,
     levels: [ { cost: 110, damage: 24, range: 150, fireRate: 1.0 }, { cost: 100, damage: 42, range: 165, fireRate: 1.1 } ],
     branches: [
@@ -74,7 +74,7 @@ export const TOWERS = {
     ],
   },
   mage_polymorph: {
-    name: '魔法師變形術', faction: 'mage', attackType: 'magic', canHitAir: true, requires: ['mage_arcane'], diamond: 100,
+    name: '魔法師變形術', faction: 'mage', attackType: 'water', canHitAir: true, requires: ['mage_arcane'], diamond: 100,
     color: '#e58ad8', splash: 0, polymorph: { chance: 0.12 },
     levels: [ { cost: 140, damage: 14, range: 120, fireRate: 0.9 }, { cost: 130, damage: 22, range: 130, fireRate: 1.0 } ],
     branches: [
@@ -83,7 +83,7 @@ export const TOWERS = {
     ],
   },
   human_barracks: {
-    name: '人類騎士兵營', faction: 'human', kind: 'barracks', canHitAir: false,
+    name: '人類騎士兵營', faction: 'human', kind: 'barracks', attackType: 'metal', canHitAir: false,
     color: '#c9c2a8',
     levels: [
       { cost: 100, soldierHp: 60,  soldierDmg: 8,  soldierAtk: 0.9, maxSoldiers: 2, engageRange: 46 },
@@ -95,7 +95,7 @@ export const TOWERS = {
     ],
   },
   human_banner: {
-    name: '人類號令旗', faction: 'human', kind: 'banner', canHitAir: false, requires: ['human_barracks'], diamond: 90,
+    name: '人類號令旗', faction: 'human', kind: 'banner', attackType: 'earth', canHitAir: false, requires: ['human_barracks'], diamond: 90,
     color: '#e8d98a',
     levels: [
       { cost: 110, range: 110, buffDamage: 1.20, buffFireRate: 1.15 },
@@ -107,7 +107,7 @@ export const TOWERS = {
     ],
   },
   dwarf_mine: {
-    name: '矮人地雷', faction: 'dwarf', kind: 'mine', attackType: 'siege', canHitAir: false, requires: ['dwarf_cannon'], diamond: 90,
+    name: '矮人地雷', faction: 'dwarf', kind: 'mine', attackType: 'earth', canHitAir: false, requires: ['dwarf_cannon'], diamond: 90,
     color: '#9a7b3a', splash: 50,
     levels: [
       { cost: 120, damage: 60, range: 130, splash: 50, maxMines: 3, mineRate: 2.5 },
@@ -121,7 +121,7 @@ export const TOWERS = {
 
   // 🎰 轉蛋專屬傳奇塔（gachaOnly：建造列顯示為「🔒 轉蛋解鎖」，Phase 3 抽到才能用）
   dragon_whelp: {
-    name: '龍族幼龍', faction: 'dragon', attackType: 'siege', canHitAir: true, gachaOnly: true,
+    name: '龍族幼龍', faction: 'dragon', attackType: 'fire', canHitAir: true, gachaOnly: true,
     color: '#e0552d', splash: 55,
     lore: '遠古巨龍的幼雛。烈焰吐息焚盡成群之敵，連翱翔天際的飛行單位也無所遁形。',
     levels: [ { cost: 200, damage: 70, range: 140, fireRate: 0.9 }, { cost: 180, damage: 120, range: 150, fireRate: 1.0 } ],
@@ -131,7 +131,7 @@ export const TOWERS = {
     ],
   },
   divine_temple: {
-    name: '神族聖殿', faction: 'god', attackType: 'magic', canHitAir: true, gachaOnly: true,
+    name: '神族聖殿', faction: 'god', attackType: 'earth', canHitAir: true, gachaOnly: true,
     color: '#ffd973', splash: 40,
     lore: '神族降臨的聖殿。以神聖審判淨化邪惡，聖光普照之處，黑暗無所容身。',
     levels: [ { cost: 220, damage: 60, range: 150, fireRate: 1.2 }, { cost: 200, damage: 100, range: 160, fireRate: 1.3 } ],

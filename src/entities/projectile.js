@@ -73,7 +73,7 @@ function updatePierce(p, enemies, dt, now) {
   const newly = [];
   for (const e of enemies) {
     if (!e.alive || p.hitSet.has(e.id)) continue;
-    if (!p.canHitAir && e.armorType === 'flying') continue;
+    if (!p.canHitAir && e.flying) continue;
     if (dist(p.x, p.y, e.x, e.y) <= (e.radius || 12) + 4) {
       e.hp -= computeDamage(p.damage, p.attackType, e.armorType);
       if (p.effect) applyEffect(e, p.effect, now);

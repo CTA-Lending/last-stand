@@ -24,7 +24,7 @@ function scaledStats(wave, typeKey) {
 // 供 main.js 召喚使用：以當前波數縮放一隻化身的規格
 export function minionSpec(wave, type) {
   const s = scaledStats(wave, type);
-  return { type, armorType: ENEMIES[type].armorType, hp: s.hp, maxHp: s.hp, speed: s.speed, bounty: s.bounty, boss: false };
+  return { type, armorType: ENEMIES[type].armorType, flying: ENEMIES[type].flying, hp: s.hp, maxHp: s.hp, speed: s.speed, bounty: s.bounty, boss: false };
 }
 
 // 回傳這一波的 enemy 規格陣列（尚未含座標，spawn 時補）
@@ -37,7 +37,7 @@ export function buildWave(wave, hpMult = 1) {
     const s = scaledStats(wave, typeKey);
     const hp = Math.round(s.hp * hpMult);
     list.push({
-      type: typeKey, armorType: ENEMIES[typeKey].armorType,
+      type: typeKey, armorType: ENEMIES[typeKey].armorType, flying: ENEMIES[typeKey].flying,
       hp, maxHp: hp, speed: s.speed, bounty: s.bounty, boss: false,
     });
   }
@@ -49,7 +49,7 @@ export function buildWave(wave, hpMult = 1) {
     const s = scaledStats(wave, bossType);
     const bossHp = Math.round(s.hp * E.bossHpMult * hpMult);
     list.push({
-      type: bossType, armorType: ENEMIES[bossType].armorType,
+      type: bossType, armorType: ENEMIES[bossType].armorType, flying: ENEMIES[bossType].flying,
       hp: bossHp, maxHp: bossHp,
       speed: s.speed, bounty: Math.round(s.bounty * E.bossBountyMult), boss: true,
       ability: ENEMIES[bossType].ability || null,
