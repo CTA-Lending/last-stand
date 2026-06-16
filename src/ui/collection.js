@@ -7,7 +7,7 @@ export function openCollection(gachaUnlocked) {
     const owned = isOwned(type, gachaUnlocked);
     const cost = def.levels[0].cost;
     return `<div class="dex-card ${owned ? '' : 'locked'}">
-      <div style="font-size:26px;color:${def.color}">●</div>
+      <div class="dex-img" style="--ec:${def.color}"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
       <h4 style="color:${def.color}">${def.name}</h4>
       <div class="dex-role">${towerRole(def)} · ${cost}g${def.gachaOnly ? ' · 傳奇' : ''}</div>
       <div class="dex-lore">${def.lore || (owned ? '' : '🔒 轉蛋解鎖')}</div>

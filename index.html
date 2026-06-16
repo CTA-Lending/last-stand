@@ -254,6 +254,25 @@
     font-size:12px; line-height:1.5; color:var(--ink); }
   @media (max-width:760px){ .armor-legend{ grid-template-columns:1fr; } table.affinity th,table.affinity td{ padding:6px 3px; font-size:12px; } }
 
+  /* 圖鑑：塔的精美圖(圓形) */
+  .dex-img{ display:flex; justify-content:center; margin:2px 0 6px; }
+  .dex-img img{ width:62px; height:62px; border-radius:50%; object-fit:cover; background:#1a1726;
+    box-shadow:0 0 0 2px var(--ec,#666), 0 0 14px -3px var(--ec,#666); }
+  .dex-card.locked .dex-img img{ filter:grayscale(1) brightness(.45); }
+
+  /* 轉蛋：本期可抽產品橫幅 */
+  .gacha-banner{ background:linear-gradient(180deg,rgba(45,38,66,.6),rgba(28,22,42,.6));
+    border:1px solid var(--edge-soft); border-radius:12px; padding:10px 12px; margin:8px 0 4px; }
+  .gacha-banner-title{ font-family:var(--display); color:var(--gold-b); font-size:13px; letter-spacing:.05em; margin-bottom:8px; }
+  .gacha-pool{ display:flex; gap:14px; justify-content:center; }
+  .gpool-item{ width:84px; text-align:center; }
+  .gpool-item img{ width:60px; height:60px; border-radius:50%; object-fit:cover; background:#1a1726;
+    box-shadow:0 0 0 2px var(--ec,#888), 0 0 14px -3px var(--ec,#888); }
+  .gpool-item.owned img{ filter:grayscale(1) brightness(.5); }
+  .gpool-name{ font-size:12px; color:var(--ink); margin-top:4px; }
+  .gpool-rate{ font-size:11px; color:#ffe08a; font-variant-numeric:tabular-nums; }
+  .gpool-rate.owned{ color:var(--jade); }
+
   /* 關閉鈕 */
   .ov-close,.dex-close,.gacha-close,.lb-close{ display:block; margin:16px auto 0; background:none; border:none;
     color:var(--dim); cursor:pointer; font-family:var(--body); font-size:14px; transition:.15s; }

@@ -14,10 +14,23 @@ function render(ov, deps, reveal) {
   const canRoll = profile.tickets > 0 && !allUnlocked;
   const card = reveal ? cardHtml(reveal) : '<div class="gacha-card" style="background:#2b3346;color:#888">轉動看看會抽到什麼…</div>';
   const ratePct = (LEGENDARY_RATE * 100).toFixed(3);
+  const ownedArr0 = profile.owned || profile.unlocked;
+  const perRate = (LEGENDARY_RATE / GACHA_POOL.length * 100).toFixed(4);
+  const pool = GACHA_POOL.map(type => {
+    const def = TOWERS[type];
+    const has = ownedArr0.includes(type);
+    return `<div class="gpool-item ${has ? 'owned' : ''}" style="--ec:${def.color}">
+      <img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy">
+      <div class="gpool-name" style="color:${has ? '' : def.color}">${def.name}</div>
+      <div class="gpool-rate ${has ? 'owned' : ''}">${has ? '已擁有' : perRate + '%'}</div></div>`;
+  }).join('');
   ov.innerHTML = `<div class="gacha-panel">
     <h2>🎰 轉轉樂</h2>
     <div>轉券：<b style="color:#ffe08a">${profile.tickets}</b></div>
-    <div style="font-size:11px;color:#9a92a8;margin:2px 0 4px">傳奇塔命中率 <b style="color:#ffe08a">${ratePct}%</b>（極稀有）</div>
+    <div class="gacha-banner">
+      <div class="gacha-banner-title">本期可抽 · 傳奇塔（命中率 ${ratePct}%）</div>
+      <div class="gacha-pool">${pool}</div>
+    </div>
     ${card}
     <button class="gacha-roll" ${canRoll ? '' : 'disabled'}>${allUnlocked ? '已全部解鎖' : '轉一發 (1券)'}</button>
     <button class="gacha-close">關閉</button>
