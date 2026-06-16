@@ -106,7 +106,7 @@ function drawTower(ctx, t, now = 0) {
   // 陰影
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath(); ctx.ellipse(t.x, t.y + 11, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
-  const art = getTowerArt(t.type);
+  const art = getTowerArt(t); // 專精時回進化圖
   if (art) {
     // 升級階級：0=Lv1, 1=Lv2, 2=專精分支 → 越高越大越亮，感覺更厲害
     const tier = t.branch != null ? 2 : (t.level || 0);
