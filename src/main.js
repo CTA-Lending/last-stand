@@ -36,7 +36,7 @@ import { campaignWave } from './systems/campaign.js';
 import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
 import { openLevelSelect } from './ui/levelSelect.js';
 import { openGuide } from './ui/guide.js';
-import { initAuth, isAuthEnabled, renderLoginButton, logout } from './auth/login.js';
+import { initAuth, isAuthEnabled, signIn, logout } from './auth/login.js';
 import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
@@ -95,10 +95,11 @@ function setupLogin() {
     if (user) {
       slot.innerHTML = `<span class="li-name">已登入 <b>${user.name}</b></span> <button class="li-btn" id="li-logout">登出</button>`;
       const lo = document.getElementById('li-logout');
-      if (lo) lo.onclick = () => logout(paint);
+      if (lo) lo.onclick = () => logout();
     } else if (isAuthEnabled()) {
-      slot.innerHTML = '<div id="gbtn"></div><span class="li-hint">登入以雲端保存進度</span>';
-      setTimeout(() => renderLoginButton(document.getElementById('gbtn')), 350);
+      slot.innerHTML = '<button class="li-btn li-google" id="li-login">用 Google 登入</button><span class="li-hint">雲端保存進度</span>';
+      const li = document.getElementById('li-login');
+      if (li) li.onclick = () => signIn();
     } else {
       slot.innerHTML = '';
     }
