@@ -5,6 +5,8 @@ import { pathSlots } from '../systems/grid.js';
 import { BALANCE } from '../data/balance.js';
 import { towerSummary } from '../systems/account.js';
 
+const UPGRADE_TIME = 1.4; // 升級/專精需要的施工時間(秒)
+
 // 地雷塔升級/分支改變 range 後，重算佈雷點(否則 range 升級是死數值)
 function refreshMineSlots(t, state) {
   if (t.kind === 'mine') t.mineSlots = pathSlots({ x: t.x, y: t.y }, t.range, state.map.paths, 26);
@@ -67,7 +69,9 @@ export function showTowerPanel(state) {
   const sell = sellValue(t, BALANCE.sellRefund);
   const towerKey = t.x + ',' + t.y;
   let actions = '';
-  if (canBranch(t)) {
+  if (t.upgrading > 0) {
+    actions = `<span style="color:var(--gold-b)">⏳ 升級中…</span>`;
+  } else if (canBranch(t)) {
     const o = branchOptions(t);
     actions = `<div class="branch-row">
       <button id="br0">${o[0].name} (${o[0].cost}g)</button>
@@ -95,12 +99,24 @@ export function showTowerPanel(state) {
     ${actions}
     <button id="sell" ${armed ? 'style="border-color:var(--rose);color:var(--rose);"' : ''}>${sellLabel}</button>`;
   const upg = document.getElementById('upg');
-  if (upg) upg.onclick = () => { if (state.economy.spend(upgradeCost(t))) { upgradeTower(t); refreshMineSlots(t, state); showTowerPanel(state); } };
+  if (upg) upg.onclick = () => {
+    if (t.upgrading > 0) return;
+    if (state.economy.spend(upgradeCost(t))) {
+      t.upgrading = UPGRADE_TIME; t.upgradingMax = UPGRADE_TIME;     // 施工中，倒數結束才套用(在 main update)
+      t._upApply = () => { upgradeTower(t); refreshMineSlots(t, state); };
+      showTowerPanel(state);
+    }
+  };
   for (const i of [0, 1]) {
     const bb = document.getElementById('br' + i);
     if (bb) bb.onclick = () => {
+      if (t.upgrading > 0) return;
       const cost = branchOptions(t)[i].cost;
-      if (state.economy.spend(cost)) { chooseBranch(t, i); refreshMineSlots(t, state); showTowerPanel(state); }
+      if (state.economy.spend(cost)) {
+        t.upgrading = UPGRADE_TIME; t.upgradingMax = UPGRADE_TIME;
+        t._upApply = () => { chooseBranch(t, i); refreshMineSlots(t, state); };
+        showTowerPanel(state);
+      }
     };
   }
   document.getElementById('sell').onclick = () => {

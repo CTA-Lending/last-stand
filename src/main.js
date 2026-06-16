@@ -217,6 +217,15 @@ function update(dt) {
   if (s.projectiles.length > prevProjLen) sfx.fire();
   for (let k = prevProjLen; k < s.projectiles.length; k++) flash(s.projectiles[k].x, s.projectiles[k].y, s.projectiles[k].color, 7);
   for (const t of s.towers) if (t.recoil > 0) t.recoil -= dt * 6;
+  // 塔升級需要時間：倒數結束才套用新等級
+  for (const t of s.towers) if (t.upgrading > 0) {
+    t.upgrading -= dt;
+    if (t.upgrading <= 0) {
+      t.upgrading = 0;
+      const apply = t._upApply; t._upApply = null;
+      if (apply) { apply(); burst(t.x, t.y, '#ffe09a', 14); flash(t.x, t.y, '#ffe09a', 18); }
+    }
+  }
   for (let i = s.projectiles.length - 1; i >= 0; i--) {
     const p = s.projectiles[i];
     const hit = updateProjectile(p, s.enemies, dt, s.now);
@@ -390,10 +399,24 @@ canvas.addEventListener('pointerup', () => {
         s.selectedTowerType = null;   // 蓋完回到游標，不連續蓋
         refreshBuildButtons(s);
       }
+    } else {
+      // 點到不可蓋處(走道/障礙/已佔/界外) → 取消選塔，避免卡在建造模式
+      s.selectedTowerType = null;
+      refreshBuildButtons(s);
     }
     return;
   }
   s.selectedTower = null; showTowerPanel(s);
+});
+
+// 右鍵：取消選塔 / 取消法術點地模式（桌面快速取消）
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const s = state;
+  if (s && isInRun() && (s.selectedTowerType || s.castMode)) {
+    s.selectedTowerType = null; s.castMode = null;
+    refreshBuildButtons(s);
+  }
 });
 
 function refreshLobbyInfo() {

@@ -157,6 +157,15 @@ function drawTower(ctx, t) {
   // 等級點 + 專精金點
   for (let i = 0; i <= (t.level || 0); i++) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(t.x - 11 + i * 6, t.y + 13, 4, 3); }
   if (t.branch != null) { ctx.fillStyle = '#ffd35a'; ctx.beginPath(); ctx.arc(t.x + 10, t.y - 10, 3, 0, Math.PI * 2); ctx.fill(); }
+  // 升級施工進度環
+  if (t.upgrading > 0 && t.upgradingMax) {
+    const prog = 1 - t.upgrading / t.upgradingMax;
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#ffe09a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(t.x, t.y, 16, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2); ctx.stroke();
+    ctx.lineCap = 'butt';
+  }
 }
 
 function drawSoldiers(ctx, towers) {
