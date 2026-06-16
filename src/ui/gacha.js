@@ -26,7 +26,7 @@ function render(ov, deps, reveal) {
   }).join('');
   ov.innerHTML = `<div class="gacha-panel">
     <h2>🎰 轉轉樂</h2>
-    <div>轉券：<b style="color:#ffe08a">${profile.tickets}</b></div>
+    <div>轉券：<b style="color:#ffe08a">${profile.tickets}</b> <span style="font-size:11px;color:#9a92a8">· 每日首次進遊戲 +1 券</span></div>
     <div class="gacha-banner">
       <div class="gacha-banner-title">本期可抽 · 傳奇塔（命中率 ${ratePct}%）</div>
       <div class="gacha-pool">${pool}</div>

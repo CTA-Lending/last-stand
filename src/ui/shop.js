@@ -1,5 +1,7 @@
 import { TOWERS } from '../data/towers.js';
 import { canBuy, buyPrice, isOwned, towerSummary } from '../systems/account.js';
+import { ELEMENT_INFO } from '../data/attackMatrix.js';
+const elColor = (def) => (ELEMENT_INFO[def.attackType] && ELEMENT_INFO[def.attackType].color) || def.color;
 
 export function openShop(profile, save, onChange) {
   const ov = document.getElementById('shopoverlay');
@@ -16,9 +18,10 @@ export function openShop(profile, save, onChange) {
       const stats = `<div style="color:var(--dim);font-size:11px;margin-top:3px;">${towerSummary(type)}</div>`;
       // 買鈕：不可購或前置未達到時 disabled
       const btnDisabled = !buyable || !prereqMet ? 'disabled' : '';
+      const ec = elColor(def);
       return `<div class="shop-card ${owned ? 'owned' : ''}" data-type="${type}">
-        <div class="dex-img" style="--ec:${def.color};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
-        <div style="color:${def.color}">${def.name}</div>
+        <div class="dex-img" style="--ec:${ec};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
+        <div style="color:${ec}">${def.name}</div>
         ${stats}
         <div>${owned ? '已擁有' : '💎' + buyPrice(type)}</div>
         ${lockLine}

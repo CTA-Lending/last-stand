@@ -1,5 +1,7 @@
 import { TOWERS } from '../data/towers.js';
 import { toggleLoadout, LOADOUT_MAX, towerSummary } from '../systems/account.js';
+import { ELEMENT_INFO } from '../data/attackMatrix.js';
+const elColor = (def) => (ELEMENT_INFO[def.attackType] && ELEMENT_INFO[def.attackType].color) || def.color;
 
 export function openLoadout(profile, save, onChange) {
   const ov = document.getElementById('loadoutoverlay');
@@ -8,9 +10,10 @@ export function openLoadout(profile, save, onChange) {
       const def = TOWERS[type]; const inLo = profile.loadout.includes(type);
       const full = !inLo && profile.loadout.length >= LOADOUT_MAX;
       const summary = towerSummary(type);
+      const ec = elColor(def);
       return `<div class="lo-card ${inLo ? 'in' : ''} ${full ? 'disabled' : ''}" data-type="${type}" title="${summary}">
-        <div class="dex-img" style="--ec:${def.color};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
-        <div style="color:${def.color}">${def.name}</div>
+        <div class="dex-img" style="--ec:${ec};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
+        <div style="color:${ec}">${def.name}</div>
         <div>${inLo ? '✓ 出戰' : (full ? '已滿' : '點選帶入')}</div>
       </div>`;
     }).join('');

@@ -26,7 +26,9 @@
   .ic{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8;
     stroke-linecap:round; stroke-linejoin:round; flex:none; }
   body{ margin:0; color:var(--ink); font-family:var(--body); min-height:100vh;
-    display:flex; flex-direction:column; align-items:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    /* 遊戲寬度：桌機放大到最多 1040px(再受視窗高度限制以免溢出)；窄螢幕用 100% */
+    --gw:min(1040px, 100%, calc((100vh - 250px) * 1.6667));
     background:
       radial-gradient(1100px 560px at 50% -8%, #2a2140 0%, transparent 60%),
       radial-gradient(820px 460px at 92% 112%, #241a36 0%, transparent 55%),
@@ -35,7 +37,7 @@
     background-image:radial-gradient(#fff .5px, transparent .5px); background-size:3px 3px; }
 
   #topbar{ display:flex; align-items:center; gap:20px; padding:15px 14px 11px; font-size:12px; letter-spacing:.04em;
-    color:var(--dim); position:relative; z-index:1; width:min(800px,100%); flex-wrap:wrap; height:76px; align-content:center; }
+    color:var(--dim); position:relative; z-index:1; width:var(--gw); flex-wrap:wrap; height:76px; align-content:center; }
   #topbar span{ display:inline-flex; align-items:center; gap:6px; }
   #topbar b{ color:var(--ink); font-weight:700; font-size:18px; font-variant-numeric:tabular-nums; line-height:1; }
   #topbar .lab{ font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); }
@@ -48,7 +50,7 @@
   #hud-next:not(:empty){ color:#f6a6bd!important; font-size:12px; font-weight:700; line-height:1;
     background:rgba(224,102,138,.14); border:1px solid rgba(224,102,138,.38); border-radius:999px; padding:3px 10px; }
 
-  #stage{ position:relative; border-radius:17px; z-index:1; width:min(800px,100%);
+  #stage{ position:relative; border-radius:17px; z-index:1; width:var(--gw);
     box-shadow:0 0 0 1px var(--edge), 0 22px 55px rgba(0,0,0,.6), inset 0 0 0 4px rgba(0,0,0,.3); }
   /* 遊戲中左上角：目前關卡/模式提示 */
   #runtitle{ position:absolute; top:10px; left:13px; z-index:3; pointer-events:none; display:none;
@@ -68,7 +70,7 @@
     z-index:7; border-radius:13px; transition:opacity .4s ease; }
   #fadeveil.veil-on{ opacity:1; transition:none; }
 
-  #buildbar{ display:flex; gap:10px; padding:14px 10px; flex-wrap:wrap; justify-content:center; z-index:1; max-width:820px; }
+  #buildbar{ display:flex; gap:10px; padding:14px 10px; flex-wrap:wrap; justify-content:center; z-index:1; width:var(--gw); }
   .build-btn{ background:linear-gradient(180deg,var(--panel2),var(--panel)); color:var(--ink);
     border:1px solid var(--edge-soft); border-radius:12px; padding:8px 12px; cursor:pointer;
     font-family:var(--body); font-size:13px; text-align:center; transition:.16s; box-shadow:0 4px 12px rgba(0,0,0,.3); }
