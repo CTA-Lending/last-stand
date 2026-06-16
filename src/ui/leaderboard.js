@@ -34,7 +34,9 @@ export async function openLeaderboard(service, save, mapNames) {
     <div class="lb-sub">${scope} · 無盡最高層數（七情六慾 13 層為一輪）</div>
     ${rows}
     ${camp ? '<div class="lb-sub">戰役最佳通關</div>' + camp : ''}
-    <div class="lb-note">${scope === '全球' ? '登入玩家的真實全球排名' : '登入後即可上全球榜'}</div>
+    <div class="lb-note">${scope === '全球'
+      ? '登入玩家的真實全球排名'
+      : (myUid ? '全球榜尚無資料——登入狀態下玩一場無盡並結束，成績就會上傳' : '登入後玩無盡即可上全球榜')}</div>
     <button class="lb-close">關閉</button></div>`;
   ov.style.display = 'flex';
   ov.querySelector('.lb-close').onclick = () => { ov.style.display = 'none'; };
