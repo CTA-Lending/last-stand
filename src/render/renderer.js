@@ -2,6 +2,7 @@ import { drawParticles, drawScreenEffects } from './particles.js';
 import { rgba, lighten } from './colors.js';
 import { hasBossForm, drawBossForm } from './bossForms.js';
 import { ELEMENT_INFO } from '../data/attackMatrix.js';
+import { getTowerArt } from './towerArt.js';
 import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
@@ -82,6 +83,13 @@ function drawTower(ctx, t) {
   // 陰影
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath(); ctx.ellipse(t.x, t.y + 11, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
+  const art = getTowerArt(t.type);
+  if (art) {
+    // 精美 IP 圖（圓形烘焙）：開火時沿瞄準反方向小幅後座
+    const sz = 44, rec = t.recoil > 0 ? Math.min(3, t.recoil * 2.2) : 0;
+    const dx = Math.cos(t.aimAngle || 0) * -rec, dy = Math.sin(t.aimAngle || 0) * -rec;
+    ctx.drawImage(art, t.x - sz / 2 + dx, t.y - sz / 2 - 2 + dy, sz, sz);
+  } else {
   // 發光環
   ctx.fillStyle = rgba(t.color, 0.16);
   ctx.beginPath(); ctx.arc(t.x, t.y, 18, 0, Math.PI * 2); ctx.fill();
@@ -155,6 +163,7 @@ function drawTower(ctx, t) {
     }
     ctx.restore();
   }
+  } // end 向量 fallback（無精美圖時）
   // 等級點 + 專精金點
   for (let i = 0; i <= (t.level || 0); i++) { ctx.fillStyle = '#ffe08a'; ctx.fillRect(t.x - 11 + i * 6, t.y + 13, 4, 3); }
   if (t.branch != null) { ctx.fillStyle = '#ffd35a'; ctx.beginPath(); ctx.arc(t.x + 10, t.y - 10, 3, 0, Math.PI * 2); ctx.fill(); }

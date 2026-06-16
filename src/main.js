@@ -5,6 +5,7 @@ import { BALANCE } from './data/balance.js';
 import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
+import { loadTowerArt } from './render/towerArt.js';
 import { updateParticles, burst, spark, floatText, flash, motes, screenFlash, shockwave } from './render/particles.js';
 import { buildWave, minionSpec } from './systems/endlessDirector.js';
 import { applyEnemyAbilities } from './systems/enemyAbility.js';
@@ -488,8 +489,7 @@ function setRunTitle() {
     const diff = { normal: '普通', hero: '英雄', hell: '地獄' }[currentDifficulty] || '';
     el.innerHTML = `${currentLevel.name}<small>戰役 · ${diff}難度 · 共 ${currentLevel.waves} 波</small>`;
   } else {
-    const mapName = (MAPS.find(m => m.map === currentMap) || {}).name || '';
-    el.innerHTML = `無盡求生<small>${mapName} · 撐越久越強</small>`;
+    el.innerHTML = `無盡求生<small>無盡心淵 · 撐越久越強</small>`;
   }
 }
 
@@ -648,6 +648,7 @@ function isInRun() {
 }
 
 function boot() {
+  loadTowerArt(); // 預載塔的精美 IP 圖
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton(); setupLogin();
   document.getElementById('enterRun').onclick = () => {
