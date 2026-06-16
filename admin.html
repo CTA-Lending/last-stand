@@ -72,23 +72,42 @@ function fmt(ts) { try { return ts && ts.toDate ? ts.toDate().toLocaleString('zh
 
 async function dashboard(email) {
   root.innerHTML = `<span id="me">${email} · <a href="#" id="out">登出</a></span>
-    <div class="stat"><div><div class="num" id="cnt">…</div><div class="lab">總用戶數</div></div></div>
-    <div id="list" style="margin-top:20px" class="muted">讀取名單中…</div>`;
+    <div class="stat">
+      <div><div class="num" id="cnt">…</div><div class="lab">總用戶數</div></div>
+      <div><div class="num" id="new" style="color:var(--jade)">…</div><div class="lab">今日新增</div></div>
+      <div><div class="num" id="act" style="color:#8fc7ff">…</div><div class="lab">7日活躍</div></div>
+    </div>
+    <div id="rank" style="margin-top:22px" class="muted">讀取排行中…</div>
+    <div id="list" style="margin-top:22px" class="muted">讀取名單中…</div>`;
   document.getElementById('out').onclick = (e) => { e.preventDefault(); authMod.signOut(auth); };
+  const col = fs.collection(db, 'users');
+  const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+  const week = new Date(Date.now() - 7 * 86400000);
+  const setNum = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   try {
-    const col = fs.collection(db, 'users');
-    const cnt = await fs.getCountFromServer(col);
-    document.getElementById('cnt').textContent = cnt.data().count;
+    setNum('cnt', (await fs.getCountFromServer(col)).data().count);
+    try { setNum('new', (await fs.getCountFromServer(fs.query(col, fs.where('createdAt', '>=', startToday))).then(r => r)).data().count); } catch { setNum('new', '—'); }
+    try { setNum('act', (await fs.getCountFromServer(fs.query(col, fs.where('lastLogin', '>=', week)))).data().count); } catch { setNum('act', '—'); }
+    // 最高層數排行(前10)
+    try {
+      const rs = await fs.getDocs(fs.query(col, fs.orderBy('bestFloor', 'desc'), fs.limit(10)));
+      let rr = ''; let i = 0;
+      rs.forEach(d => { const u = d.data(); if (u.bestFloor) { i++; rr += `<tr><td class="num">#${i}</td><td>${u.name || '—'}</td><td class="num">第 ${u.bestRound || 1} 輪 · 第 ${u.bestLayer || 1} 層</td></tr>`; } });
+      document.getElementById('rank').innerHTML = i
+        ? `<div style="color:var(--gold);font-weight:700;margin-bottom:6px">🏆 玩家最高層數排行</div><table><thead><tr><th>名次</th><th>名稱</th><th>最高層數</th></tr></thead><tbody>${rr}</tbody></table>`
+        : '<div class="muted">尚無無盡成績紀錄。</div>';
+    } catch { document.getElementById('rank').innerHTML = ''; }
+    // 最近登入名單
     const snap = await fs.getDocs(fs.query(col, fs.orderBy('lastLogin', 'desc'), fs.limit(200)));
     let rows = '';
     snap.forEach(d => { const u = d.data(); rows += `<tr><td>${u.name || '—'}</td><td class="num">${u.email || '—'}</td><td class="num">${fmt(u.lastLogin)}</td></tr>`; });
     document.getElementById('list').innerHTML = snap.size
-      ? `<table><thead><tr><th>名稱</th><th>Email</th><th>最近登入</th></tr></thead><tbody>${rows}</tbody></table>`
+      ? `<div style="color:var(--gold);font-weight:700;margin-bottom:6px">最近登入</div><table><thead><tr><th>名稱</th><th>Email</th><th>最近登入</th></tr></thead><tbody>${rows}</tbody></table>`
       : '<div class="muted">目前還沒有玩家登入。</div>';
   } catch (e) {
     document.getElementById('list').innerHTML = `<div class="err">讀取失敗：${e.code || e.message}<br>
-      （請確認 Firebase 已啟用 Firestore，且安全規則允許管理員讀取）</div>`;
-    document.getElementById('cnt').textContent = '!';
+      （請確認 Firestore 已啟用，且安全規則允許管理員讀取）</div>`;
+    setNum('cnt', '!');
   }
 }
 

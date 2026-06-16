@@ -8,16 +8,20 @@ let _auth = null, _authMod = null, _db = null, _fsMod = null, _user = null, _onC
 
 export function getUser() { return _user; }
 export function isAuthEnabled() { return AUTH_ENABLED; }
+// 供 cloud.js 用：取得 Firestore 與當前 uid/名稱
+export function getFs() { return (_db && _fsMod) ? { db: _db, fs: _fsMod } : null; }
+export function getUid() { return _user ? _user.uid : null; }
+export function getUserName() { return _user ? _user.name : null; }
 
 // 玩家登入後寫進 Firestore users/{uid}（供管理者後台統計用戶數）
 async function recordUser(u) {
   if (!_db || !_fsMod) return;
   try {
-    await _fsMod.setDoc(_fsMod.doc(_db, 'users', u.uid), {
-      email: u.email || '', name: u.displayName || u.email || '',
-      lastLogin: _fsMod.serverTimestamp(),
-      createdAt: _fsMod.serverTimestamp(),  // merge:true → 已存在不覆蓋掉首登(由規則/或忽略)
-    }, { merge: true });
+    const ref = _fsMod.doc(_db, 'users', u.uid);
+    const snap = await _fsMod.getDoc(ref);
+    const data = { email: u.email || '', name: u.displayName || u.email || '', lastLogin: _fsMod.serverTimestamp() };
+    if (!snap.exists()) data.createdAt = _fsMod.serverTimestamp(); // createdAt 只在首次寫(供「今日新增」統計)
+    await _fsMod.setDoc(ref, data, { merge: true });
   } catch (e) { console.warn('[auth] 記錄用戶失敗(可能 Firestore 未啟用)', e); }
 }
 

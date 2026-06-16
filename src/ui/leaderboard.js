@@ -1,10 +1,22 @@
 import { BALANCE } from '../data/balance.js';
+import { fetchGlobalBoard } from '../auth/cloud.js';
+import { getUid } from '../auth/login.js';
 
 const DIFF_LABEL = { normal: '普通', hero: '英雄', hell: '地獄' };
 
 export async function openLeaderboard(service, save, mapNames) {
   const ov = document.getElementById('lboverlay');
-  const board = await service.getEndlessBoard();
+  // 優先抓雲端全球榜；抓不到(未登入/未啟用)就用本機榜
+  const global = await fetchGlobalBoard(30).catch(() => null);
+  const myUid = getUid();
+  let scope, board;
+  if (global && global.length) {
+    scope = '全球';
+    board = global.map((r, i) => ({ ...r, rank: i + 1, you: r.uid === myUid }));
+  } else {
+    scope = '本機';
+    board = await service.getEndlessBoard();
+  }
   const rows = board.length
     ? board.map(r => `<div class="lb-row ${r.you ? 'you' : ''}">
         <span class="lb-rank">#${r.rank}</span>
@@ -19,10 +31,10 @@ export async function openLeaderboard(service, save, mapNames) {
   }
   ov.innerHTML = `<div class="lb-panel">
     <h2>🏆 撐最久榜</h2>
-    <div class="lb-sub">無盡模式 · 最高層數（七情六慾 13 層為一輪）</div>
+    <div class="lb-sub">${scope} · 無盡最高層數（七情六慾 13 層為一輪）</div>
     ${rows}
     ${camp ? '<div class="lb-sub">戰役最佳通關</div>' + camp : ''}
-    <div class="lb-note">本機紀錄；接上伺服器後可顯示真實全球排名</div>
+    <div class="lb-note">${scope === '全球' ? '登入玩家的真實全球排名' : '登入後即可上全球榜'}</div>
     <button class="lb-close">關閉</button></div>`;
   ov.style.display = 'flex';
   ov.querySelector('.lb-close').onclick = () => { ov.style.display = 'none'; };

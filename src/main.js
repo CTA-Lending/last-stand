@@ -40,6 +40,7 @@ import { TERRAINS } from './data/terrains.js';
 import { openLevelSelect } from './ui/levelSelect.js';
 import { openGuide } from './ui/guide.js';
 import { initAuth, isAuthEnabled, signIn, logout } from './auth/login.js';
+import { loadCloudProfile, pushCloudProfile, submitCloudScore } from './auth/cloud.js';
 import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
@@ -78,7 +79,12 @@ function endlessRecord(s) {
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-const save = createSaveService();
+const baseSave = createSaveService();
+// 包裝：存檔/提交成績時同步到雲端(登入才生效，未登入 no-op)
+const save = Object.assign({}, baseSave, {
+  saveProfile(p) { baseSave.saveProfile(p); pushCloudProfile(p); },
+  submit(rec) { const r = baseSave.submit(rec); submitCloudScore(rec); return r; },
+});
 const leaderboard = createLocalLeaderboard(save, LEADERBOARD_SEED);
 const mouse = { x: 0, y: 0 };
 let state, loop;
@@ -106,15 +112,37 @@ function setupLogin() {
       slot.innerHTML = `<span class="li-name">已登入 <b>${user.name}</b></span> <button class="li-btn" id="li-logout">登出</button>`;
       const lo = document.getElementById('li-logout');
       if (lo) lo.onclick = () => logout();
+      if (_syncedUid !== user.uid) { _syncedUid = user.uid; syncCloud(); } // 首次登入該帳號 → 同步雲端進度
     } else if (isAuthEnabled()) {
       slot.innerHTML = '<button class="li-btn li-google" id="li-login">用 Google 登入</button><span class="li-hint">選填 · 雲端存進度；不登入也能直接玩</span>';
       const li = document.getElementById('li-login');
       if (li) li.onclick = () => signIn();
     } else {
+      _syncedUid = null;
       slot.innerHTML = '';
     }
   };
   initAuth(paint);
+}
+
+let _syncedUid = null;
+// 登入後：把雲端進度合併進本機(取較佳)，再推回雲端
+async function syncCloud() {
+  try {
+    const c = await loadCloudProfile();
+    if (c) {
+      profile.diamonds = Math.max(profile.diamonds || 0, c.diamonds || 0);
+      profile.tickets = Math.max(profile.tickets || 0, c.tickets || 0);
+      profile.owned = [...new Set([...(profile.owned || []), ...(c.owned || [])])];
+      if (c.loadout && c.loadout.length) profile.loadout = c.loadout.filter(t => profile.owned.includes(t));
+      profile.cleared = [...new Set([...(profile.cleared || []), ...(c.cleared || [])])];
+      profile.seenTutorial = profile.seenTutorial || c.seenTutorial;
+      for (const t of profile.owned) gachaUnlocked.add(t);
+      baseSave.saveProfile(profile);
+      refreshLobbyInfo(); initGachaButton();
+    }
+    pushCloudProfile(profile); // 首登或合併後推上雲端
+  } catch (e) { console.warn('[cloud] 同步失敗', e); }
 }
 
 function initGuideButton() {
