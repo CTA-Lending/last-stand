@@ -78,9 +78,12 @@ export function computeBuildableCells(map) {
   const set = new Set();
   const cols = Math.floor(map.width / map.tile);
   const rows = Math.floor(map.height / map.tile);
+  const blocked = map.blockedCells;
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rows; row++) {
-      if (isBuildable(col, row, map)) set.add(cellKey(col, row));
+      const key = cellKey(col, row);
+      if (blocked && blocked.has(key)) continue; // 地形障礙佔格，不可蓋
+      if (isBuildable(col, row, map)) set.add(key);
     }
   }
   return set;

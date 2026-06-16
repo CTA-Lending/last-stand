@@ -5,30 +5,59 @@ import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
 
-function drawOnePath(ctx, path) {
-  ctx.strokeStyle = '#4a4358'; ctx.lineWidth = 34; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
-  ctx.strokeStyle = '#332e42'; ctx.lineWidth = 26;
-  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
-  ctx.strokeStyle = 'rgba(180,170,205,0.30)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
-  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke(); ctx.setLineDash([]);
-  ctx.strokeStyle = 'rgba(180,170,205,0.12)'; ctx.lineWidth = 4;
-  ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+// 預設地形主題（沿用原本墨紫色調）；每張地圖可用 map.theme 覆蓋成專屬地形
+const DEFAULT_THEME = {
+  top: '#1f2735', bottom: '#141a26',          // 地面漸層
+  pathOuter: '#4a4358', pathInner: '#332e42', // 路徑石板內外層
+  dash: 'rgba(180,170,205,0.30)',             // 路徑虛線
+  mote: '95,211,178',                         // 玉光游塵 RGB
+};
+
+function drawOnePath(ctx, path, th) {
+  const trace = () => { ctx.beginPath(); path.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke(); };
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.strokeStyle = th.pathOuter; ctx.lineWidth = 34; trace();
+  ctx.strokeStyle = th.pathInner; ctx.lineWidth = 26; trace();
+  ctx.strokeStyle = th.dash; ctx.lineWidth = 2; ctx.setLineDash([6, 8]); trace(); ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(180,170,205,0.12)'; ctx.lineWidth = 4; trace();
+}
+
+// 地形障礙（湖/熔岩/深淵/石柱/餐桌…）：純裝飾繪製（佔格邏輯在 blockedCells）
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function drawObstacle(ctx, o, now) {
+  const w = o.w, h = o.h, x = o.x - w / 2, y = o.y - h / 2, rad = Math.min(12, w / 2, h / 2);
+  if (o.type === 'solid') { // 石柱/金堆/餐桌/念晶：實體塊，擋路又佔位
+    ctx.fillStyle = 'rgba(0,0,0,0.32)'; roundRect(ctx, x + 2, y + 5, w, h, rad); ctx.fill();
+    ctx.fillStyle = o.color || '#5a5468'; roundRect(ctx, x, y, w, h, rad); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; roundRect(ctx, x + 3, y + 3, w - 6, h * 0.42, rad * 0.6); ctx.fill();
+    if (o.glow) { ctx.strokeStyle = o.glow.replace('ALPHA', '0.5'); ctx.lineWidth = 1.5; roundRect(ctx, x, y, w, h, rad); ctx.stroke(); }
+  } else { // 液體(lake/lava/void/毒沼)：呼吸光暈池
+    const pulse = 0.5 + 0.5 * Math.sin((now || 0) * 1.5 + o.x * 0.05);
+    ctx.fillStyle = o.color || 'rgba(60,120,200,0.5)';
+    ctx.beginPath(); ctx.ellipse(o.x, o.y, w / 2, h / 2, 0, 0, 7); ctx.fill();
+    if (o.glow) { ctx.strokeStyle = o.glow.replace('ALPHA', (0.2 + pulse * 0.3).toFixed(2)); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(o.x, o.y, w / 2, h / 2, 0, 0, 7); ctx.stroke(); }
+  }
 }
 
 function drawTerrain(ctx, map, now = 0) {
+  const th = map.theme || DEFAULT_THEME;
   const grad = ctx.createLinearGradient(0, 0, 0, map.height);
-  grad.addColorStop(0, '#1f2735');
-  grad.addColorStop(1, '#141a26');
+  grad.addColorStop(0, th.top); grad.addColorStop(1, th.bottom);
   ctx.fillStyle = grad; ctx.fillRect(0, 0, map.width, map.height);
-  // 玉光游塵（散點呼吸明滅）
+  // 點綴游塵（散點呼吸明滅）
   for (let gx = 16; gx < map.width; gx += 46) for (let gy = 22; gy < map.height; gy += 46) {
     const ox = (gx * 13 % 17) - 8, oy = (gy * 7 % 19) - 9;
     const a = Math.max(0, 0.06 + 0.04 * Math.sin(now * 0.5 + gx * 0.1 + gy * 0.07));
-    ctx.fillStyle = 'rgba(95,211,178,' + a + ')';
+    ctx.fillStyle = 'rgba(' + th.mote + ',' + a + ')';
     ctx.beginPath(); ctx.arc(gx + ox, gy + oy, 2.5, 0, Math.PI * 2); ctx.fill();
   }
-  for (const path of map.paths) drawOnePath(ctx, path);
+  if (map.obstacles) for (const o of map.obstacles) drawObstacle(ctx, o, now);
+  for (const path of map.paths) drawOnePath(ctx, path, th);
 }
 
 // 建造模式下：淡顯所有可蓋格，並把滑鼠所在格標綠(可蓋)/紅(不可)

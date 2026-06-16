@@ -34,6 +34,7 @@ import { openShop } from './ui/shop.js';
 import { openLoadout } from './ui/loadout.js';
 import { campaignWave } from './systems/campaign.js';
 import { CHAPTERS, LEVEL_ORDER } from './data/levels.js';
+import { TERRAINS } from './data/terrains.js';
 import { openLevelSelect } from './ui/levelSelect.js';
 import { openGuide } from './ui/guide.js';
 import { initAuth, isAuthEnabled, signIn, logout } from './auth/login.js';
@@ -410,6 +411,7 @@ function initShopButtons() {
 
 function initMapPicker() {
   const bar = document.getElementById('mapbar');
+  if (!bar) return; // 地圖改為關卡內建，大廳不再提供選單
   bar.innerHTML = '';
   MAPS.forEach(m => {
     const b = document.createElement('button');
@@ -566,7 +568,7 @@ function enterLobby() {
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('hint').style.display = 'none';
   showInGameUI(false);
-  initModePicker(); initMapPicker(); refreshLobbyInfo();
+  initModePicker(); refreshLobbyInfo();
 }
 
 function startRun() {
@@ -580,9 +582,9 @@ function startRun() {
   showInGameUI(true);
   setRunTitle();
   initRunControls();
-  const runMap = (currentMode === 'campaign' && currentLevel)
-    ? (currentLevel.map === 'map2' ? MAP2 : MAP1)
-    : currentMap;
+  const runMap = (currentMode === 'campaign' && currentLevel && TERRAINS[currentLevel.id])
+    ? TERRAINS[currentLevel.id]
+    : TERRAINS.endless;
   state = createGameState(runMap, gameOpts());
   state.gachaUnlocked = gachaUnlocked;
   state.loadout = profile.loadout.slice();
