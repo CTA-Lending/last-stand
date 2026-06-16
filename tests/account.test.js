@@ -27,8 +27,10 @@ test('編隊至少保留 1 塔(不可清空)', () => {
   const lo = toggleLoadout(['elf_archer'], 'elf_archer', LOADOUT_MAX);
   assert.deepEqual(lo, ['elf_archer']); // 最後一塔移不掉
 });
-test('結算鑽石：戰役依難度、無盡依波數', () => {
-  assert.equal(runDiamonds({ mode: 'campaign', won: true, difficulty: 'hell' }), 120);
-  assert.equal(runDiamonds({ mode: 'campaign', won: false, difficulty: 'hell' }), 0); // 沒過關不給
-  assert.equal(runDiamonds({ mode: 'endless', wave: 10 }), 20);
+test('結算鑽石：戰役關卡鑽×難度倍率、無盡依層數', () => {
+  assert.equal(runDiamonds({ mode: 'campaign', won: true, difficulty: 'normal', levelDiamond: 100 }), 100); // ×1
+  assert.equal(runDiamonds({ mode: 'campaign', won: true, difficulty: 'hero', levelDiamond: 100 }), 200);   // ×2
+  assert.equal(runDiamonds({ mode: 'campaign', won: true, difficulty: 'hell', levelDiamond: 100 }), 350);   // ×3.5
+  assert.equal(runDiamonds({ mode: 'campaign', won: false, difficulty: 'hell', levelDiamond: 100 }), 0);    // 沒過關不給
+  assert.equal(runDiamonds({ mode: 'endless', floor: 10 }), 200);  // 每層 20
 });

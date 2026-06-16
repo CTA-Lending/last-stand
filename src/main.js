@@ -31,7 +31,7 @@ import { openCollection } from './ui/collection.js';
 import { createLocalLeaderboard } from './systems/leaderboard.js';
 import { LEADERBOARD_SEED } from './data/leaderboardSeed.js';
 import { openLeaderboard } from './ui/leaderboard.js';
-import { runDiamonds } from './systems/account.js';
+import { runDiamonds, campaignReward } from './systems/account.js';
 import { openShop } from './ui/shop.js';
 import { openLoadout } from './ui/loadout.js';
 import { campaignWave } from './systems/campaign.js';
@@ -66,7 +66,8 @@ function campaignKey(s) {
 }
 
 function awardDiamonds(s) {
-  const gained = runDiamonds({ mode: s.mode, won: s.won, difficulty: s.difficulty, wave: s.wave });
+  const floor = s.mode === 'campaign' ? 0 : endlessProgress(s.wave).floor;
+  const gained = runDiamonds({ mode: s.mode, won: s.won, difficulty: s.difficulty, wave: s.wave, floor, levelDiamond: s.level ? s.level.diamond : 30 });
   profile.diamonds += gained; save.saveProfile(profile);
   return gained;
 }
@@ -372,7 +373,7 @@ function update(dt) {
     if (s.level) {
       // 章節關卡：獎勵固定鑽石、記錄通關、解鎖下一關
       if (!profile.cleared.includes(s.level.id)) profile.cleared.push(s.level.id);
-      dia = s.level.diamond;
+      dia = campaignReward(s.level.diamond, s.difficulty); // 難度倍率：普通×1/英雄×2/地獄×3.5
       profile.diamonds += dia;
       save.saveProfile(profile);
     } else {
