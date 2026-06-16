@@ -14,6 +14,11 @@ test('全解鎖則回 dup', () => {
   const r = drawGacha(['dragon_whelp', 'divine_temple'], () => 0);
   assert.equal(r.dup, true);
 });
+test('未命中(0.001%)時槓龜 miss', () => {
+  const r = drawGacha([], () => 0.5); // 0.5 遠大於 0.00001 → 槓龜
+  assert.equal(r.miss, true);
+  assert.equal(r.type, null);
+});
 test('換日判定', () => {
   assert.equal(isNewDay(null, '2026-06-15'), true);
   assert.equal(isNewDay('2026-06-14', '2026-06-15'), true);

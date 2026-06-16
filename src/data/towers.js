@@ -95,7 +95,7 @@ export const TOWERS = {
     ],
   },
   human_banner: {
-    name: '人類號令旗', faction: 'human', kind: 'banner', attackType: 'earth', canHitAir: false, requires: ['human_barracks'], diamond: 90,
+    name: '人類號令旗', faction: 'human', kind: 'banner', attackType: 'earth', canHitAir: false, requires: ['human_barracks'], diamond: 3000,
     color: '#e8d98a',
     levels: [
       { cost: 110, range: 110, buffDamage: 1.20, buffFireRate: 1.15 },

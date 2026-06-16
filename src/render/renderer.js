@@ -102,14 +102,36 @@ function drawBuildGrid(ctx, state, mouse) {
   ctx.fillRect(col * tile + 1, row * tile + 1, tile - 2, tile - 2);
 }
 
-function drawTower(ctx, t) {
+function drawTower(ctx, t, now = 0) {
   // 陰影
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath(); ctx.ellipse(t.x, t.y + 11, 14, 6, 0, 0, Math.PI * 2); ctx.fill();
   const art = getTowerArt(t.type);
   if (art) {
-    // 精美 IP 圖（圓形烘焙）：開火時沿瞄準反方向小幅後座
-    const sz = 44, rec = t.recoil > 0 ? Math.min(3, t.recoil * 2.2) : 0;
+    // 升級階級：0=Lv1, 1=Lv2, 2=專精分支 → 越高越大越亮，感覺更厲害
+    const tier = t.branch != null ? 2 : (t.level || 0);
+    const ei = ELEMENT_INFO[t.attackType];
+    const ecol = ei ? ei.color : '#ffe09a';
+    // 升級光暈（元素色，等級越高越亮越大）
+    if (tier > 0) {
+      const rad = 17 + tier * 5;
+      const gg = ctx.createRadialGradient(t.x, t.y, 3, t.x, t.y, rad);
+      gg.addColorStop(0, rgba(ecol, 0.0));
+      gg.addColorStop(0.55, rgba(ecol, 0.06 + tier * 0.07));
+      gg.addColorStop(1, rgba(ecol, 0));
+      ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(t.x, t.y, rad, 0, Math.PI * 2); ctx.fill();
+    }
+    // 專精：旋轉金色符文環，氣勢全開
+    if (t.branch != null) {
+      ctx.save(); ctx.translate(t.x, t.y); ctx.rotate(now * 0.6);
+      ctx.strokeStyle = 'rgba(255,224,138,0.6)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(0, 0, 23, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#ffe08a';
+      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.beginPath(); ctx.arc(Math.cos(a) * 23, Math.sin(a) * 23, 1.6, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    // 精美 IP 圖：階級越高畫越大；開火沿瞄準反方向小幅後座
+    const sz = 44 + tier * 4, rec = t.recoil > 0 ? Math.min(3, t.recoil * 2.2) : 0;
     const dx = Math.cos(t.aimAngle || 0) * -rec, dy = Math.sin(t.aimAngle || 0) * -rec;
     ctx.drawImage(art, t.x - sz / 2 + dx, t.y - sz / 2 - 2 + dy, sz, sz);
   } else {
@@ -381,7 +403,7 @@ export function render(ctx, state, mouse) {
   if (state.shake > 0.3) ctx.translate((Math.random() * 2 - 1) * state.shake, (Math.random() * 2 - 1) * state.shake);
   drawTerrain(ctx, state.map, state.now);
   drawBuildGrid(ctx, state, mouse);
-  for (const t of state.towers) drawTower(ctx, t);
+  for (const t of state.towers) drawTower(ctx, t, state.now);
   drawMinesAndAuras(ctx, state.towers);
   drawSoldiers(ctx, state.towers);
   for (const e of state.enemies) if (e.alive || e.deathT > 0) drawEnemy(ctx, e, state.now);
