@@ -40,7 +40,8 @@ import { TERRAINS } from './data/terrains.js';
 import { openLevelSelect } from './ui/levelSelect.js';
 import { openGuide } from './ui/guide.js';
 import { initAuth, isAuthEnabled, signIn, logout } from './auth/login.js';
-import { loadCloudProfile, pushCloudProfile, submitCloudScore } from './auth/cloud.js';
+import { loadCloudProfile, pushCloudProfile, submitCloudScore, fetchAppConfig } from './auth/cloud.js';
+import { GAME_CONFIG } from './data/config.js';
 import { icon } from './ui/icons.js';
 
 const MAPS = [ { name: '森林小徑', map: MAP1 }, { name: '雙叉路口', map: MAP2 } ];
@@ -94,8 +95,8 @@ const gachaUnlocked = new Set(profile.owned);
 const today = new Date().toISOString().slice(0, 10);
 if (isNewDay(profile.lastLogin, today)) { profile.tickets += 1; profile.lastLogin = today; save.saveProfile(profile); }
 
-// ── 防沉迷：每日最多遊玩 2 小時（只計副本內實際遊玩，暫停不計）──
-const PLAY_LIMIT_SEC = 2 * 3600;
+// ── 防沉迷：每日遊玩上限（分鐘可調，0=不限制；只計副本內實際遊玩，暫停不計）──
+let _playLimitSec = (GAME_CONFIG.dailyPlayLimitMin || 0) * 60; // 可被後台遠端設定覆蓋
 const PT_KEY = 'laststand.playtime';
 function loadPtSec() {
   try { const r = JSON.parse(localStorage.getItem(PT_KEY) || '{}'); if (r.date === today) return r.sec || 0; } catch {}
@@ -106,14 +107,26 @@ function addPlaytime(dt) {
   _ptSec += dt; _ptAcc += dt;
   if (_ptAcc >= 2) { _ptAcc = 0; try { localStorage.setItem(PT_KEY, JSON.stringify({ date: today, sec: Math.floor(_ptSec) })); } catch {} }
 }
-function playLimitReached() { return _ptSec >= PLAY_LIMIT_SEC; }
-function remainPlayMin() { return Math.ceil(Math.max(0, PLAY_LIMIT_SEC - _ptSec) / 60); }
+function playLimitReached() { return _playLimitSec > 0 && _ptSec >= _playLimitSec; }
+function limitMin() { return Math.round(_playLimitSec / 60); }
+function remainPlayMin() { return Math.ceil(Math.max(0, _playLimitSec - _ptSec) / 60); }
+
+// 後台遠端設定：套用每日上限（全玩家下次開即生效）
+async function applyRemoteConfig() {
+  try {
+    const cfg = await fetchAppConfig();
+    if (cfg && typeof cfg.dailyPlayLimitMin === 'number') {
+      _playLimitSec = Math.max(0, cfg.dailyPlayLimitMin) * 60;
+      refreshLobbyInfo();
+    }
+  } catch {}
+}
 
 function showPlayLimit() {
   const el = document.getElementById('overlay');
   el.innerHTML = `<div class="panel">
     <h1>⏰ 今日遊玩已達上限</h1>
-    <p>為了健康，每天最多遊玩 <b>2 小時</b>。</p>
+    <p>為了健康，每天最多遊玩 <b>${limitMin()} 分鐘</b>。</p>
     <p>今天先休息，明天再來守關吧！</p>
     <button id="lobby-btn">回大廳</button></div>`;
   el.style.display = 'flex';
@@ -148,7 +161,7 @@ function setupLogin() {
       slot.innerHTML = '';
     }
   };
-  initAuth(paint);
+  initAuth(paint).then(applyRemoteConfig); // 啟動後讀後台遠端設定(每日上限)
 }
 
 let _syncedUid = null;
@@ -494,9 +507,14 @@ function refreshLobbyInfo() {
   const d = document.getElementById('dia-count'); if (d) d.textContent = profile.diamonds;
   const pn = document.getElementById('playtimenote');
   if (pn) {
-    const lim = playLimitReached();
-    pn.textContent = lim ? '⏰ 今日已玩滿 2 小時，明天再來～' : `🕒 今日剩餘遊玩時間約 ${remainPlayMin()} 分（每日上限 2 小時）`;
-    pn.classList.toggle('limit', lim);
+    if (_playLimitSec <= 0) { pn.textContent = ''; pn.classList.remove('limit'); }
+    else {
+      const lim = playLimitReached();
+      pn.textContent = lim
+        ? `⏰ 今日已玩滿 ${limitMin()} 分鐘，明天再來～`
+        : `🕒 今日剩餘遊玩約 ${remainPlayMin()} 分（每日上限 ${limitMin()} 分）`;
+      pn.classList.toggle('limit', lim);
+    }
   }
 }
 

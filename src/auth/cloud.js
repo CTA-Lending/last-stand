@@ -50,6 +50,24 @@ export async function submitCloudScore(rec) {
   } catch (e) { console.warn('[cloud] 提交成績失敗', e); }
 }
 
+// 讀後台遠端設定 config/app（公開可讀；回物件或 null）
+export async function fetchAppConfig() {
+  const c = getFs();
+  if (!c) return null;
+  try {
+    const snap = await c.fs.getDoc(c.fs.doc(c.db, 'config', 'app'));
+    return snap.exists() ? snap.data() : null;
+  } catch (e) { console.warn('[cloud] 讀設定失敗', e); return null; }
+}
+
+// 寫後台設定（僅管理員，由 admin 頁呼叫）
+export async function setAppConfig(obj) {
+  const c = getFs();
+  if (!c) return false;
+  try { await c.fs.setDoc(c.fs.doc(c.db, 'config', 'app'), obj, { merge: true }); return true; }
+  catch (e) { console.warn('[cloud] 寫設定失敗', e); return false; }
+}
+
 // 取全球榜前 N（回陣列或 null）
 export async function fetchGlobalBoard(limitN = 20) {
   const c = getFs();

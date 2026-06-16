@@ -77,9 +77,28 @@ async function dashboard(email) {
       <div><div class="num" id="new" style="color:var(--jade)">…</div><div class="lab">今日新增</div></div>
       <div><div class="num" id="act" style="color:#8fc7ff">…</div><div class="lab">7日活躍</div></div>
     </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
+      <div style="color:var(--gold);font-weight:700;margin-bottom:8px">⏰ 防沉迷設定</div>
+      每日遊玩上限
+      <input id="limitInput" type="number" min="0" step="10" style="width:84px;padding:6px 8px;margin:0 6px;border-radius:8px;border:1px solid var(--edge);background:rgba(255,255,255,.05);color:var(--ink);font-family:inherit">
+      分鐘（0 = 不限制）
+      <button class="btn" id="saveLimit" style="margin-left:8px;padding:8px 16px;font-size:14px">儲存</button>
+      <span id="limitMsg" class="muted" style="margin-left:8px"></span>
+    </div>
     <div id="rank" style="margin-top:22px" class="muted">讀取排行中…</div>
     <div id="list" style="margin-top:22px" class="muted">讀取名單中…</div>`;
   document.getElementById('out').onclick = (e) => { e.preventDefault(); authMod.signOut(auth); };
+  // 防沉迷設定：載入現值 + 儲存
+  (async () => {
+    try { const cs = await fs.getDoc(fs.doc(db, 'config', 'app')); document.getElementById('limitInput').value = (cs.exists() && cs.data().dailyPlayLimitMin != null) ? cs.data().dailyPlayLimitMin : 120; }
+    catch { document.getElementById('limitInput').value = 120; }
+  })();
+  document.getElementById('saveLimit').onclick = async () => {
+    const v = Math.max(0, parseInt(document.getElementById('limitInput').value || '0', 10) || 0);
+    const msg = document.getElementById('limitMsg');
+    try { await fs.setDoc(fs.doc(db, 'config', 'app'), { dailyPlayLimitMin: v }, { merge: true }); msg.textContent = '✓ 已儲存（玩家下次開即生效）'; msg.style.color = 'var(--jade)'; }
+    catch (e) { msg.textContent = '儲存失敗：' + (e.code || e.message); msg.style.color = '#ff8da0'; }
+  };
   const col = fs.collection(db, 'users');
   const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
   const week = new Date(Date.now() - 7 * 86400000);
