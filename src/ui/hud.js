@@ -1,3 +1,5 @@
+import { endlessProgress } from '../systems/endlessDirector.js';
+
 export function updateHud(state) {
   document.getElementById('hud-gold').textContent = Math.floor(state.economy.gold);
   document.getElementById('hud-lives').textContent = state.economy.lives;
@@ -31,11 +33,23 @@ export function showVictory(state, bestTime, onRestart, onLobby, diamonds = 0) {
 
 export function showGameOver(state, best, onRestart, onLobby, diamonds = 0) {
   const el = document.getElementById('overlay');
+  const dead = state.economy.isDead();
+  const endless = state.mode !== 'campaign';
+  let line, bestLine;
+  if (endless) {
+    const p = endlessProgress(state.wave);
+    line = `你撐到 <b>第 ${p.round} 輪 · 第 ${p.layer} 層</b> · ${Math.floor(state.economy.elapsed)} 秒`;
+    if (best) { const bp = endlessProgress(best.wave); bestLine = `本機最高：第 ${bp.round} 輪 · 第 ${bp.layer} 層`; }
+    else bestLine = '（首次紀錄已保存）';
+  } else {
+    line = `你撐到第 <b>${state.wave}</b> 波 · ${Math.floor(state.economy.elapsed)} 秒`;
+    bestLine = '（紀錄已保存）';
+  }
   el.innerHTML = `
     <div class="panel">
-      <h1>陣亡！</h1>
-      <p>你撐到第 <b>${state.wave}</b> 波 · ${Math.floor(state.economy.elapsed)} 秒 · ${state.economy.score} 分</p>
-      <p class="best">${best ? '本機最佳：第 ' + best.wave + ' 波' : '（首次紀錄已保存）'}</p>
+      <h1>${dead ? '陣亡！' : '本局結束'}</h1>
+      <p>${line} · ${state.economy.score} 分</p>
+      <p class="best">${bestLine}</p>
       <p>獲得 💎${diamonds}</p>
       <button id="restart">再來一局</button>
       <button id="lobby-btn">回大廳</button>

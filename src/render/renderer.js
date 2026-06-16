@@ -46,6 +46,27 @@ function drawObstacle(ctx, o, now) {
   }
 }
 
+// 終點黑洞：旋轉吸積環 + 純黑核心，讓玩家一眼看出路徑終點(基地)在哪
+function drawBlackHole(ctx, x, y, now) {
+  const t = now || 0;
+  const halo = ctx.createRadialGradient(x, y, 2, x, y, 24);
+  halo.addColorStop(0, 'rgba(0,0,0,1)');
+  halo.addColorStop(0.5, 'rgba(22,8,34,0.92)');
+  halo.addColorStop(1, 'rgba(120,60,200,0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath(); ctx.arc(x, y, 24, 0, Math.PI * 2); ctx.fill();
+  // 旋轉吸積光環
+  for (let i = 0; i < 3; i++) {
+    ctx.strokeStyle = 'rgba(170,110,240,' + (0.4 - i * 0.1) + ')';
+    ctx.lineWidth = 3 - i;
+    ctx.beginPath(); ctx.arc(x, y, 15 + i * 4, t * 2.2 + i * 1.3, t * 2.2 + i * 1.3 + Math.PI * 1.4); ctx.stroke();
+  }
+  // 純黑核心 + 內緣亮環
+  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(200,150,255,0.65)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(x, y, 9.5, 0, Math.PI * 2); ctx.stroke();
+}
+
 function drawTerrain(ctx, map, now = 0) {
   const th = map.theme || DEFAULT_THEME;
   const grad = ctx.createLinearGradient(0, 0, 0, map.height);
@@ -60,6 +81,7 @@ function drawTerrain(ctx, map, now = 0) {
   }
   if (map.obstacles) for (const o of map.obstacles) drawObstacle(ctx, o, now);
   for (const path of map.paths) drawOnePath(ctx, path, th);
+  if (map.base) drawBlackHole(ctx, map.base.x, map.base.y, now); // 終點黑洞
 }
 
 // 建造模式下：淡顯所有可蓋格，並把滑鼠所在格標綠(可蓋)/紅(不可)

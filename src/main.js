@@ -68,6 +68,13 @@ function awardDiamonds(s) {
   return gained;
 }
 
+// 無盡成績：含層數/輪數（記錄「最多打到第幾層」）
+function endlessRecord(s) {
+  const p = endlessProgress(s.wave);
+  return { wave: s.wave, time: Math.floor(s.economy.elapsed), score: s.economy.score,
+    floor: p.floor, round: p.round, layer: p.layer };
+}
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const save = createSaveService();
@@ -305,8 +312,7 @@ function update(dt) {
 
   if (s.economy.isDead() && !s.over) {
     s.over = true;
-    const record = { wave: s.wave, time: Math.floor(s.economy.elapsed), score: s.economy.score };
-    save.submit(record);
+    if (s.mode !== 'campaign') save.submit(endlessRecord(s)); // 無盡才記排行
     const dia = awardDiamonds(s);
     showGameOver(s, save.getBest(), restart, enterLobby, dia);
   }
@@ -550,29 +556,38 @@ function initRunControls() {
   _togglePause = togglePause;
 
   // 🏳 投降 (二次確認)
+  const isEndless = currentMode !== 'campaign';
+  const exitLabel = isEndless ? '🏁 結束' : '🏳 投降';
   const forfeitBtn = document.createElement('button');
-  forfeitBtn.textContent = '🏳 投降';
-  forfeitBtn.title = '放棄本局（點兩下確認）';
+  forfeitBtn.textContent = exitLabel;
+  forfeitBtn.title = isEndless ? '結束本局並記錄最高層數（點兩下確認）' : '放棄本局（點兩下確認）';
   let forfeitArmed = false;
   forfeitBtn.onclick = () => {
     if (!forfeitArmed) {
       forfeitArmed = true;
-      forfeitBtn.textContent = '確認投降?';
+      forfeitBtn.textContent = isEndless ? '確認結束?' : '確認投降?';
       forfeitBtn.style.borderColor = 'var(--rose)';
       forfeitBtn.style.color = 'var(--rose)';
       setTimeout(() => {
         if (forfeitArmed) {
           forfeitArmed = false;
-          forfeitBtn.textContent = '🏳 投降';
+          forfeitBtn.textContent = exitLabel;
           forfeitBtn.style.borderColor = '';
           forfeitBtn.style.color = '';
         }
       }, 3000);
     } else {
       forfeitArmed = false;
-      // 若暫停中先恢復 loop 再進大廳
       if (_paused) { _paused = false; pauseOverlay.style.display = 'none'; loop.start(); }
-      enterLobby();
+      if (isEndless && state && !state.over) {
+        // 無盡主動結束：記錄最高層數並顯示結算窗口
+        state.over = true;
+        save.submit(endlessRecord(state));
+        const dia = awardDiamonds(state);
+        showGameOver(state, save.getBest(), restart, enterLobby, dia);
+      } else {
+        enterLobby();
+      }
     }
   };
 
