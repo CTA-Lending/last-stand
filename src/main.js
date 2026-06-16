@@ -94,6 +94,32 @@ const gachaUnlocked = new Set(profile.owned);
 const today = new Date().toISOString().slice(0, 10);
 if (isNewDay(profile.lastLogin, today)) { profile.tickets += 1; profile.lastLogin = today; save.saveProfile(profile); }
 
+// ── 防沉迷：每日最多遊玩 2 小時（只計副本內實際遊玩，暫停不計）──
+const PLAY_LIMIT_SEC = 2 * 3600;
+const PT_KEY = 'laststand.playtime';
+function loadPtSec() {
+  try { const r = JSON.parse(localStorage.getItem(PT_KEY) || '{}'); if (r.date === today) return r.sec || 0; } catch {}
+  return 0;
+}
+let _ptSec = loadPtSec(), _ptAcc = 0;
+function addPlaytime(dt) {
+  _ptSec += dt; _ptAcc += dt;
+  if (_ptAcc >= 2) { _ptAcc = 0; try { localStorage.setItem(PT_KEY, JSON.stringify({ date: today, sec: Math.floor(_ptSec) })); } catch {} }
+}
+function playLimitReached() { return _ptSec >= PLAY_LIMIT_SEC; }
+function remainPlayMin() { return Math.ceil(Math.max(0, PLAY_LIMIT_SEC - _ptSec) / 60); }
+
+function showPlayLimit() {
+  const el = document.getElementById('overlay');
+  el.innerHTML = `<div class="panel">
+    <h1>⏰ 今日遊玩已達上限</h1>
+    <p>為了健康，每天最多遊玩 <b>2 小時</b>。</p>
+    <p>今天先休息，明天再來守關吧！</p>
+    <button id="lobby-btn">回大廳</button></div>`;
+  el.style.display = 'flex';
+  document.getElementById('lobby-btn').onclick = () => { el.style.display = 'none'; enterLobby(); };
+}
+
 function initDexButton() {
   const bar = document.getElementById('dexbtn');
   bar.innerHTML = '';
@@ -209,6 +235,9 @@ function maybeStartWave(s) {
 function update(dt) {
   const s = state;
   if (s.over) return;
+  // 防沉迷：累計實際遊玩時間，達 2 小時上限即結束本局
+  addPlaytime(dt);
+  if (playLimitReached()) { s.over = true; showPlayLimit(); return; }
   if (s.hitStop > 0) { s.hitStop -= dt; return; }
   s.now += dt;
   s.shake *= 0.86; if (s.shake < 0.3) s.shake = 0;
@@ -463,6 +492,12 @@ canvas.addEventListener('contextmenu', e => {
 
 function refreshLobbyInfo() {
   const d = document.getElementById('dia-count'); if (d) d.textContent = profile.diamonds;
+  const pn = document.getElementById('playtimenote');
+  if (pn) {
+    const lim = playLimitReached();
+    pn.textContent = lim ? '⏰ 今日已玩滿 2 小時，明天再來～' : `🕒 今日剩餘遊玩時間約 ${remainPlayMin()} 分（每日上限 2 小時）`;
+    pn.classList.toggle('limit', lim);
+  }
 }
 
 function initShopButtons() {
@@ -658,6 +693,7 @@ function enterLobby() {
 }
 
 function startRun() {
+  if (playLimitReached()) { showPlayLimit(); return; } // 防沉迷：達上限不開新局
   unlockAudio();
   startAmbient();
   _paused = false;
@@ -702,6 +738,7 @@ function boot() {
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton(); setupLogin();
   document.getElementById('enterRun').onclick = () => {
+    if (playLimitReached()) { showPlayLimit(); return; } // 防沉迷
     unlockAudio();
     // 戰役：先開關卡選單（難度已在大廳選好）；無盡：直接開打
     if (currentMode === 'campaign') {

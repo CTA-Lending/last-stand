@@ -168,6 +168,8 @@
   .li-name{ color:var(--jade); font-size:13px; }
   .li-name b{ color:#8df0d0; }
   .li-hint{ color:var(--dim); font-size:11px; }
+  #playtimenote{ font-size:11px; color:var(--dim); margin:-4px 0 10px; }
+  #playtimenote.limit{ color:var(--rose); }
   .li-btn{ font-family:var(--body); font-size:12px; padding:5px 11px; cursor:pointer; transition:.15s;
     background:rgba(255,255,255,.05); color:var(--ink); border:1px solid var(--edge-soft); border-radius:9px; }
   .li-btn:hover{ border-color:var(--edge); color:var(--gold-b); }
@@ -341,6 +343,7 @@
         <div class="lobby-sub">LAST STAND · 淨化心魔</div>
         <div id="diamondbar"><svg class="ic" viewBox="0 0 24 24" style="color:var(--jade)"><path d="M6 4h12l3.4 5.4L12 21 2.6 9.4z"/><path d="M2.6 9.4h18.8M9 4 6 9.4 12 21 18 9.4 15 4"/></svg> <b id="dia-count">0</b></div>
         <div id="loginslot" class="login-slot"></div>
+        <div id="playtimenote"></div>
         <div class="lobby-section"><span class="lobby-label">模式</span><span id="modebar"></span></div>
         <button id="enterRun"><svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px;stroke:none;fill:currentColor"><path d="M8 5.4v13.2l11-6.6z"/></svg> 進入副本</button>
         <div class="lobby-menu">
