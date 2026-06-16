@@ -9,7 +9,7 @@ export function openLoadout(profile, save, onChange) {
       const full = !inLo && profile.loadout.length >= LOADOUT_MAX;
       const summary = towerSummary(type);
       return `<div class="lo-card ${inLo ? 'in' : ''} ${full ? 'disabled' : ''}" data-type="${type}" title="${summary}">
-        <div style="font-size:20px;color:${def.color}">●</div>
+        <div class="dex-img" style="--ec:${def.color};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
         <div style="color:${def.color}">${def.name}</div>
         <div>${inLo ? '✓ 出戰' : (full ? '已滿' : '點選帶入')}</div>
       </div>`;

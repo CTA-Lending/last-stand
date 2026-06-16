@@ -17,7 +17,7 @@ export function openShop(profile, save, onChange) {
       // 買鈕：不可購或前置未達到時 disabled
       const btnDisabled = !buyable || !prereqMet ? 'disabled' : '';
       return `<div class="shop-card ${owned ? 'owned' : ''}" data-type="${type}">
-        <div style="font-size:22px;color:${def.color}">●</div>
+        <div class="dex-img" style="--ec:${def.color};margin:0 0 5px"><img src="assets/towers/${type}.png" alt="${def.name}" loading="lazy"></div>
         <div style="color:${def.color}">${def.name}</div>
         ${stats}
         <div>${owned ? '已擁有' : '💎' + buyPrice(type)}</div>
