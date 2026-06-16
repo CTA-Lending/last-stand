@@ -6,6 +6,7 @@ import { createGameState } from './state/gameState.js';
 import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
 import { loadTowerArt } from './render/towerArt.js';
+import { loadEnemyArt } from './render/enemyArt.js';
 import { updateParticles, burst, spark, floatText, flash, motes, screenFlash, shockwave } from './render/particles.js';
 import { buildWave, minionSpec, endlessProgress } from './systems/endlessDirector.js';
 import { applyEnemyAbilities } from './systems/enemyAbility.js';
@@ -669,6 +670,7 @@ function isInRun() {
 
 function boot() {
   loadTowerArt(); // 預載塔的精美 IP 圖
+  loadEnemyArt(); // 預載 boss 精美 IP 圖
   loop = createLoop({ update, render: draw });
   initGachaButton(); initDexButton(); initLbButton(); initShopButtons(); initGuideButton(); setupLogin();
   document.getElementById('enterRun').onclick = () => {

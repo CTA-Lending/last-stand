@@ -3,6 +3,7 @@ import { rgba, lighten } from './colors.js';
 import { hasBossForm, drawBossForm } from './bossForms.js';
 import { ELEMENT_INFO } from '../data/attackMatrix.js';
 import { getTowerArt } from './towerArt.js';
+import { getEnemyArt } from './enemyArt.js';
 import { TOWERS } from '../data/towers.js';
 import { SPELLS } from '../systems/spells.js';
 import { cellOf, cellKey, cellCenter } from '../systems/grid.js';
@@ -222,8 +223,9 @@ function drawEnemy(ctx, e, now) {
     const scale = 1 + prog * 0.4;
     const alpha = e.deathT / 0.14;
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = e.color;
-    ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * scale, 0, Math.PI * 2); ctx.fill();
+    const dart = e.boss ? getEnemyArt(e.type) : null;
+    if (dart) { const sz = e.radius * 2.7 * scale; ctx.drawImage(dart, e.x - sz / 2, e.y - sz / 2, sz, sz); }
+    else { ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius * scale, 0, Math.PI * 2); ctx.fill(); }
     ctx.globalAlpha = 1;
     return;
   }
@@ -233,6 +235,7 @@ function drawEnemy(ctx, e, now) {
   // 受擊擠壓回彈（橫向略壓扁，物理凹陷感）
   const hitK = e.hitFlash > 0 ? Math.min(1, e.hitFlash / 0.12) : 0;
   const bossForm = e.boss && hasBossForm(e);
+  const bossArt = e.boss ? getEnemyArt(e.type) : null; // 有精美圖優先用圖
   ctx.save();
   if (hitK > 0) { ctx.translate(e.x, y); ctx.scale(1 + 0.12 * hitK, 1 - 0.14 * hitK); ctx.translate(-e.x, -y); }
   // 陰影
@@ -246,8 +249,8 @@ function drawEnemy(ctx, e, now) {
     ctx.beginPath(); ctx.arc(e.x, y, r + 5 + p * 2, 0, Math.PI * 2); ctx.stroke();
     ctx.shadowBlur = 0;
   }
-  // Boss 骨角(從身體後方探出；有專屬剪影者不畫，避免破壞輪廓)
-  if (e.boss && !bossForm) {
+  // Boss 骨角(從身體後方探出；有專屬剪影/精美圖者不畫，避免破壞輪廓)
+  if (e.boss && !bossForm && !bossArt) {
     ctx.fillStyle = '#e6dabd';
     ctx.beginPath(); ctx.moveTo(e.x - r * 0.55, y - r * 0.55); ctx.lineTo(e.x - r * 0.95, y - r * 1.3); ctx.lineTo(e.x - r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
     ctx.beginPath(); ctx.moveTo(e.x + r * 0.55, y - r * 0.55); ctx.lineTo(e.x + r * 0.95, y - r * 1.3); ctx.lineTo(e.x + r * 0.2, y - r * 0.82); ctx.closePath(); ctx.fill();
@@ -255,8 +258,17 @@ function drawEnemy(ctx, e, now) {
   // 身體
   const flashAmt = e.hitFlash > 0 ? Math.min(80, e.hitFlash / 0.12 * 80) : 0;
   const bodyColor = e.hitFlash > 0 ? lighten(e.color, flashAmt) : e.color;
-  const suppressFace = bossForm && (e.form === 'dread' || e.form === 'psyche');
-  if (bossForm) {
+  const suppressFace = !!bossArt || (bossForm && (e.form === 'dread' || e.form === 'psyche'));
+  if (bossArt) {
+    // 精美 IP 圖（圓裁）：依生成縮放畫，受擊疊白閃
+    const sz = r * 2.7;
+    ctx.drawImage(bossArt, e.x - sz / 2, y - sz / 2, sz, sz);
+    if (e.hitFlash > 0) {
+      ctx.globalAlpha = Math.min(0.45, e.hitFlash / 0.12 * 0.45);
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(e.x, y, r * 0.95, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  } else if (bossForm) {
     drawBossForm(ctx, e, e.x, y, r, bodyColor, now || 0);
   } else {
     ctx.fillStyle = bodyColor;
@@ -264,8 +276,8 @@ function drawEnemy(ctx, e, now) {
     ctx.fillStyle = e.hitFlash > 0 ? lighten(e.color, flashAmt) : lighten(e.color, 40);
     ctx.beginPath(); ctx.arc(e.x, y - r * 0.35, r * 0.55, 0, Math.PI * 2); ctx.fill(); // 上方加亮
   }
-  // 重甲護板：土/金 元素(厚重/堅硬)顯示甲條（boss 專屬剪影不畫）
-  if ((e.armorType === 'earth' || e.armorType === 'metal') && !bossForm) { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
+  // 重甲護板：土/金 元素顯示甲條（boss 專屬剪影/精美圖不畫）
+  if ((e.armorType === 'earth' || e.armorType === 'metal') && !bossForm && !bossArt) { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(e.x - r * 0.82, y + r * 0.16, r * 1.64, r * 0.34); }
   // 眼睛 + 眉（自帶臉的剪影 dread/psyche 跳過）
   const ex = r * 0.34, ey = -r * 0.06;
   if (!suppressFace) {
