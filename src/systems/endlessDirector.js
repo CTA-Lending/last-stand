@@ -7,6 +7,16 @@ const MINIONS_A = ['xinmo', 'zhizhang', 'yuanhun'];
 const MINIONS_B = ['yunian', 'xinmo', 'zhizhang'];
 const SEVEN = ['emo_nu', 'emo_ai', 'emo_ju', 'emo_aii', 'emo_wu', 'emo_xi', 'emo_yu'];
 const SIX   = ['yu_se', 'yu_sheng', 'yu_xiang', 'yu_wei', 'yu_chu', 'yu_yi'];
+const THIRTEEN = [...SEVEN, ...SIX]; // 七情六慾依序，13 隻一輪
+
+// 無盡進度：每 bossEvery 波為一「層」，13 層走完七情六慾一遍 = 一「輪」
+export function endlessProgress(wave, bossEvery = E.bossEvery) {
+  const floor = Math.max(1, Math.floor((wave - 1) / bossEvery) + 1);
+  const round = Math.floor((floor - 1) / 13) + 1;
+  const layer = ((floor - 1) % 13) + 1;
+  const key = THIRTEEN[(floor - 1) % 13];
+  return { floor, round, layer, key, name: ENEMIES[key].name };
+}
 
 function poolFor(wave) {
   // 每 3 波切換化身組合，讓玩家面對不同護甲組合
@@ -42,10 +52,9 @@ export function buildWave(wave, hpMult = 1) {
     });
   }
   if (wave % E.bossEvery === 0) {
-    const idx = Math.floor(wave / E.bossEvery) - 1;
-    const useSix = wave % E.demonBossEvery === 0;
-    const arr = useSix ? SIX : SEVEN;
-    const bossType = arr[((useSix ? Math.floor(wave / E.demonBossEvery) - 1 : idx) % arr.length + arr.length) % arr.length];
+    // 依序循環七情六慾 13 隻：第 k 個王 = THIRTEEN[(k-1)%13]
+    const k = wave / E.bossEvery;
+    const bossType = THIRTEEN[(k - 1) % 13];
     const s = scaledStats(wave, bossType);
     const bossHp = Math.round(s.hp * E.bossHpMult * hpMult);
     list.push({

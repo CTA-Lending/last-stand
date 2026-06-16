@@ -7,7 +7,7 @@ import { createLoop } from './core/loop.js';
 import { render } from './render/renderer.js';
 import { loadTowerArt } from './render/towerArt.js';
 import { updateParticles, burst, spark, floatText, flash, motes, screenFlash, shockwave } from './render/particles.js';
-import { buildWave, minionSpec } from './systems/endlessDirector.js';
+import { buildWave, minionSpec, endlessProgress } from './systems/endlessDirector.js';
 import { applyEnemyAbilities } from './systems/enemyAbility.js';
 import { spawnEnemy, updateEnemy } from './entities/enemy.js';
 import { buildTower, updateTower } from './entities/tower.js';
@@ -145,7 +145,9 @@ function showWaveBanner(s) {
     : (s.wave % BALANCE.endless.bossEvery === 0);
   let text = '第 ' + s.wave + ' 波';
   if (isBossWave) {
-    const bossName = s.wave % (BALANCE.endless.demonBossEvery || 10) === 0 ? '魔王' : '死亡騎士';
+    const bossName = s.mode === 'campaign'
+      ? '首領'
+      : endlessProgress(s.wave).name;   // 無盡：顯示當前情慾王名
     text = '⚠ 首領 · ' + bossName;
   }
   el.textContent = text;
@@ -160,6 +162,7 @@ function maybeStartWave(s) {
   s.spawnQueue = (s.mode === 'campaign' && s.level)
     ? campaignWave(s.level, s.wave, s.hpMult)
     : buildWave(s.wave, s.hpMult);
+  if (s.mode !== 'campaign') setRunTitle(); // 無盡：每波更新「第R輪 第L層」
   s.spawnTimer = 0;
   s.waveTimer = BALANCE.endless.waveInterval;
   sfx.wave();
@@ -489,7 +492,9 @@ function setRunTitle() {
     const diff = { normal: '普通', hero: '英雄', hell: '地獄' }[currentDifficulty] || '';
     el.innerHTML = `${currentLevel.name}<small>戰役 · ${diff}難度 · 共 ${currentLevel.waves} 波</small>`;
   } else {
-    el.innerHTML = `無盡求生<small>無盡心淵 · 撐越久越強</small>`;
+    const wave = (state && state.wave) || 1;
+    const p = endlessProgress(Math.max(1, wave));
+    el.innerHTML = `無盡求生<small>第 ${p.round} 輪 · 第 ${p.layer}/13 層　▶ ${p.name}</small>`;
   }
 }
 

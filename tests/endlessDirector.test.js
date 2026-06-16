@@ -33,17 +33,17 @@ test('波次會切換到第二化身池', () => {
   const wave = buildWave(4);
   assert.ok(wave.some(e => MINION_TYPES.has(e.type)));
 });
-test('第5波首領為七情 Boss 之一', () => {
-  const wave = buildWave(5);
-  const boss = wave.find(e => e.boss);
-  assert.ok(boss, '第5波應有 boss');
-  assert.ok(SEVEN.includes(boss.type), `boss type 應在 SEVEN，但得到 ${boss.type}`);
+test('首領依序循環七情六慾13隻（第k個王=THIRTEEN[(k-1)%13]）', () => {
+  const THIRTEEN = [...SEVEN, ...SIX];
+  for (const k of [1, 2, 7, 8, 13, 14]) {           // k=每 5 波一個王
+    const boss = buildWave(k * 5).find(e => e.boss);
+    assert.ok(boss, `第${k * 5}波應有 boss`);
+    assert.equal(boss.type, THIRTEEN[(k - 1) % 13], `第${k}個王應為 ${THIRTEEN[(k - 1) % 13]}`);
+  }
 });
-test('第10波首領為六慾 Boss 之一', () => {
-  const wave = buildWave(10);
-  const boss = wave.find(e => e.boss);
-  assert.ok(boss, '第10波應有 boss');
-  assert.ok(SIX.includes(boss.type), `boss type 應在 SIX，但得到 ${boss.type}`);
+test('第14個王回到嗔怒（第2輪第1層）', () => {
+  const boss = buildWave(14 * 5).find(e => e.boss);
+  assert.equal(boss.type, 'emo_nu');
 });
 test('hpMult 縮放怪血', () => {
   const base = buildWave(3)[0].hp;
